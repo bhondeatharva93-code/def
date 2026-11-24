@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop | YourBrand</title>
+  <meta name="description" content="Browse prebuilt PCs, components, peripherals and office gear. Filter by category, price and brand.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/assistant.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <div class="wrap">
+      <div class="pagehead">
+        <ol class="crumbs"><li><a href="/">Home</a></li><li id="crumb-here">Shop</li></ol>
+        <span class="eyebrow">Catalogue</span>
+        <h1 id="shop-title">Shop</h1>
+        <p id="shop-sub"></p>
+      </div>
+
+      <div class="shop">
+        <aside class="filters" id="filters" aria-label="Filters"></aside>
+
+        <section aria-labelledby="shop-title">
+          <div class="toolbar">
+            <p class="toolbar__count" id="count" aria-live="polite"></p>
+            <div class="toolbar__ctl">
+              <button class="btn btn--outline btn--sm filter-btn" id="open-filters" type="button" aria-controls="filters" aria-expanded="false"></button>
+              <label class="sr" for="sort">Sort by</label>
+              <select class="input" id="sort" style="width:auto;min-height:2.5rem;padding:0.25rem 0.75rem"></select>
+            </div>
+          </div>
+          <div class="pills" id="pills"></div>
+          <div id="results"></div>
+          <div class="more-wrap" id="more-wrap"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/util.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/data.js"></script>
+  <script src="/js/store.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/shop.js"></script>
+  <script src="/js/compat.js"></script>
+  <script src="/js/assistant-kb.js"></script>
+  <script src="/js/assistant-brain.js"></script>
+  <script src="/js/assistant.js"></script>
+</body>
+</html>

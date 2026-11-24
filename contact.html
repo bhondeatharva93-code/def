@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact and support | YourBrand</title>
+  <meta name="description" content="Visit the store, call or message us, or send a service request for a warranty claim or repair.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/assistant.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <div class="wrap">
+      <div class="pagehead">
+        <ol class="crumbs"><li><a href="/">Home</a></li><li>Contact and support</li></ol>
+        <span class="eyebrow">Support &amp; Storefront</span>
+        <h1>Contact and support</h1>
+        <p>Visit the store, call or message us, or send a service request for a warranty claim, repair or order question.</p>
+      </div>
+
+      <div class="contact">
+        <section class="panel" aria-labelledby="h-visit">
+          <h2 id="h-visit">Visit or call</h2>
+          <address id="contact-info"></address>
+        </section>
+
+        <section class="panel" aria-labelledby="h-req">
+          <h2 id="h-req">Send a service request</h2>
+          <form id="req-form" novalidate>
+            <div class="row2">
+              <div class="field"><label for="r-name">Full name</label><input class="input" id="r-name" autocomplete="name" aria-describedby="re-name"><p class="err" id="re-name"></p></div>
+              <div class="field"><label for="r-phone">Mobile number</label><input class="input" id="r-phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="10 digits" aria-describedby="re-phone"><p class="err" id="re-phone"></p></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label for="r-type">What do you need help with?</label>
+                <select class="input" id="r-type" aria-describedby="re-type"></select><p class="err" id="re-type"></p></div>
+              <div class="field"><label for="r-ref">Order or invoice number <small>(optional)</small></label><input class="input" id="r-ref" autocomplete="off"></div>
+            </div>
+            <div class="field"><label for="r-msg">Tell us what happened</label>
+              <textarea class="input" id="r-msg" aria-describedby="re-msg"></textarea><p class="err" id="re-msg"></p></div>
+            <button class="btn btn--primary" type="submit">Prepare request</button>
+            <p class="note" style="margin-top:12px">This demo has no server. After you press the button you choose how to send the request.</p>
+          </form>
+
+          <div id="req-done" role="status" hidden>
+            <p><strong>Your request is ready.</strong> Choose how to send it to us.</p>
+            <div class="btn-row" style="margin:14px 0">
+              <a class="btn btn--primary" id="send-wa" href="#" target="_blank" rel="noopener noreferrer">Send on WhatsApp</a>
+              <a class="btn btn--outline" id="send-mail" href="#">Send by email</a>
+            </div>
+            <button class="linkbtn" type="button" id="req-edit">Edit the request</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/util.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/data.js"></script>
+  <script src="/js/store.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/contact.js"></script>
+  <script src="/js/compat.js"></script>
+  <script src="/js/assistant-kb.js"></script>
+  <script src="/js/assistant-brain.js"></script>
+  <script src="/js/assistant.js"></script>
+</body>
+</html>

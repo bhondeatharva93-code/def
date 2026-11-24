@@ -1,0 +1,8 @@
+{
+  "name": "YourBrand | Gaming, editing, trading and office PCs",
+  "description": "Pick what you will use a PC for, set a budget and see a ready-to-ship build with every part listed. Prebuilt PCs, custom builds and components with EMI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

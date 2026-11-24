@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Policies | YourBrand</title>
+  <meta name="description" content="Shipping, returns and refunds, warranty, privacy and terms of use.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/assistant.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <div class="wrap">
+      <div class="pagehead">
+        <ol class="crumbs"><li><a href="/">Home</a></li><li>Policies</li></ol>
+        <span class="eyebrow">Store Information</span>
+        <h1>Policies</h1>
+        <p class="note note--box" style="max-width:70ch">These are sample policies for a demo store. Replace every section with your own rules, and have them checked, before you sell anything.</p>
+      </div>
+
+      <div class="docs">
+        <nav aria-label="Policies">
+          <a href="#shipping">Shipping</a>
+          <a href="#returns">Returns and refunds</a>
+          <a href="#warranty">Warranty</a>
+          <a href="#privacy">Privacy</a>
+          <a href="#terms">Terms of use</a>
+        </nav>
+
+        <div class="prose">
+          <section id="shipping">
+            <h2>Shipping</h2>
+            <p>We ship across India with tracked couriers. Shipping is free on orders above <span data-cfg="freeAbove"></span>. Below that, a flat fee of <span data-cfg="flat"></span> applies.</p>
+            <ul>
+              <li>PCs are assembled and tested before dispatch, so allow a few working days before they leave us.</li>
+              <li>Delivery time depends on your pincode. You receive a tracking link once the parcel ships.</li>
+              <li>Check the box when it arrives. If it is damaged, record a short video while opening it and message us the same day.</li>
+            </ul>
+          </section>
+
+          <section id="returns">
+            <h2>Returns and refunds</h2>
+            <p>If something is wrong with your order, tell us within 7 days of delivery. Keep the original box and packing until we have sorted it out.</p>
+            <ul>
+              <li>Items that arrive damaged or not as described are replaced or refunded.</li>
+              <li>Unused items in original packing can be returned within the window above. The return courier cost is paid by the buyer unless we made the mistake.</li>
+              <li>Refunds go back to the original payment method within 7 working days of us receiving the item.</li>
+              <li>Opened software, consumables and made-to-order custom builds cannot be returned unless faulty.</li>
+            </ul>
+          </section>
+
+          <section id="warranty">
+            <h2>Warranty</h2>
+            <p>Every part carries the manufacturer's warranty. The period is listed on the product page and on your invoice.</p>
+            <ul>
+              <li>Keep your GST invoice. You need it to claim warranty.</li>
+              <li>Message us first. We help you raise the claim with the brand and guide you through the steps.</li>
+              <li>Physical damage, liquid damage and burn marks are usually not covered by brand warranty.</li>
+            </ul>
+          </section>
+
+          <section id="privacy">
+            <h2>Privacy</h2>
+            <p>We ask only for what we need to deliver your order: your name, mobile number, address and, if you want one, your GST number.</p>
+            <ul>
+              <li>In this demo, your cart, wishlist and orders are saved in your own browser and are not sent anywhere.</li>
+              <li>When you press a WhatsApp button, the message you see is sent to us by WhatsApp, under WhatsApp's own privacy terms.</li>
+              <li>We do not sell your details. Write to <span data-cfg="email"></span> to ask us to delete them.</li>
+            </ul>
+          </section>
+
+          <section id="terms">
+            <h2>Terms of use</h2>
+            <p>By ordering from <span data-cfg="name"></span> you agree to these terms.</p>
+            <ul>
+              <li>Prices include GST (<span data-cfg="gst"></span>) and can change without notice until your order is confirmed.</li>
+              <li>An order is confirmed when we reply to you and, where needed, receive payment.</li>
+              <li>Specifications can change slightly between batches. We will tell you before dispatch if a part is replaced by an equal or better one.</li>
+              <li>Questions? Call <span data-cfg="phone"></span> or message us on WhatsApp.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/util.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/data.js"></script>
+  <script src="/js/store.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/compat.js"></script>
+  <script src="/js/assistant-kb.js"></script>
+  <script src="/js/assistant-brain.js"></script>
+  <script src="/js/assistant.js"></script>
+  <script>
+    PCS.ui.mount('policies', 'Policies');
+
+    /* Fill the numbers and contact details from js/config.js so they never go out of date. */
+    (function (PCS) {
+      var cfg = PCS.config, values = {
+        name: cfg.name, phone: cfg.phone, email: cfg.email,
+        freeAbove: PCS.util.money(cfg.shipping.freeAbove),
+        flat: PCS.util.money(cfg.shipping.flat),
+        gst: cfg.gstPercent + '%'
+      };
+      PCS.util.$$('[data-cfg]').forEach(function (n) { n.textContent = values[n.dataset.cfg]; });
+    })(window.PCS);
+  </script>
+</body>
+</html>

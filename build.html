@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build your own PC | YourBrand</title>
+  <meta name="description" content="Pick every part of your PC. The builder checks that the parts fit together and estimates the power supply you need.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/assistant.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <div class="wrap">
+      <div class="pagehead">
+        <ol class="crumbs"><li><a href="/">Home</a></li><li>Custom build</li></ol>
+        <span class="eyebrow">Custom PC Builder</span>
+        <h1>Build your own PC</h1>
+        <p>Choose a part for each slot. Parts that do not fit what you already picked are greyed out, with the reason. Prices include GST.</p>
+      </div>
+
+      <div class="presets" id="presets"></div>
+
+      <div class="builder">
+        <div id="slots"></div>
+        <aside class="bsum" id="bsum" aria-label="Build summary"></aside>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/util.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/data.js"></script>
+  <script src="/js/compat.js"></script>
+  <script src="/js/store.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/build.js"></script>
+  <script src="/js/assistant-kb.js"></script>
+  <script src="/js/assistant-brain.js"></script>
+  <script src="/js/assistant.js"></script>
+</body>
+</html>

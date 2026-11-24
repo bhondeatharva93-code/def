@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YourBrand | Gaming, editing, trading and office PCs</title>
+  <meta name="description" content="Pick what you will use a PC for, set a budget and see a ready-to-ship build with every part listed. Prebuilt PCs, custom builds and components with EMI.">
+  <meta property="og:title" content="YourBrand | Gaming, editing, trading and office PCs">
+  <meta property="og:description" content="Set a budget and see the right PC, with every part listed.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/intro.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/rgb-hero.css">
+  <link rel="stylesheet" href="/css/assistant.css">
+  <script>document.documentElement.classList.add('intro-active');</script>
+</head>
+<body>
+  <div class="intro-splash" id="intro-splash" role="dialog" aria-modal="true" aria-label="Welcome video">
+    <div class="intro-popup" id="intro-popup">
+      <div class="intro-popup__stage" id="intro-stage">
+        <div class="intro-popup__player" id="intro-yt-player"></div>
+      </div>
+      <div class="intro-popup__fallback" id="intro-fallback" hidden>
+        <img class="intro-popup__thumb" id="intro-thumb" alt="Video preview thumbnail" referrerpolicy="no-referrer">
+        <a class="intro-popup__play" id="intro-fallback-play" href="https://www.youtube.com/watch?v=FoTHBvSVRA4" target="_blank" rel="noopener noreferrer" aria-label="Watch the full video on YouTube">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <polygon points="6,4 20,12 6,20"/>
+          </svg>
+        </a>
+      </div>
+      <div class="intro-popup__scrim" aria-hidden="true"></div>
+      <a class="intro-popup__cover" id="intro-cover" href="https://www.youtube.com/watch?v=FoTHBvSVRA4" target="_blank" rel="noopener noreferrer" aria-label="Watch the full video on YouTube"></a>
+      <button class="intro-popup__btn intro-popup__skip" id="intro-skip" type="button" aria-label="Skip video">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+        <span>Skip</span>
+      </button>
+      <div class="intro-popup__bottom">
+        <a class="intro-popup__btn intro-popup__btn--primary" id="intro-watch" href="https://www.youtube.com/watch?v=FoTHBvSVRA4" target="_blank" rel="noopener noreferrer">
+          <svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <polygon points="6,4 20,12 6,20"/>
+          </svg>
+          <span>Watch full video on YouTube</span>
+        </a>
+        <button class="intro-popup__btn" id="intro-mute" type="button" aria-pressed="false" aria-label="Unmute video sound">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M11 5 6 9H2v6h4l5 4V5z"/>
+            <path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+            <path d="M19 5a9 9 0 0 1 0 14"/>
+          </svg>
+          <span>Sound Off</span>
+        </button>
+      </div>
+      <div class="intro-popup__progress" aria-hidden="true"><span id="intro-progress"></span></div>
+    </div>
+  </div>
+  <script src="/js/video-config.js"></script>
+  <script src="/js/intro.js"></script>
+
+  <div id="site-header"></div>
+
+  <main id="main">
+    <!-- 3. Hero: Large studio visual first, big friendly headline, CTAs, and PC finder -->
+    <section class="hero-stage section--dark" id="hero-stage" aria-label="Featured PCs and budget finder">
+      <div class="rgb-hero" id="rgb-hero"></div>
+      <div class="wrap hero__finder-wrap">
+        <div class="hero__grid">
+          <div class="hero__copy">
+            <span class="eyebrow">PC Finder</span>
+            <h2 class="hero__title">Set a budget. Get the right PC.</h2>
+            <p>Say what you will use it for, drag the budget, and see a ready-to-ship PC with every part listed.</p>
+            <div class="btn-row">
+              <a class="btn btn--primary" href="/shop?cat=prebuilt">Browse prebuilt PCs</a>
+              <a class="btn btn--outline-white" href="/build">Build your own</a>
+            </div>
+            <ul class="hero__proof" id="proof"></ul>
+          </div>
+          <div class="tuner" id="tuner" aria-label="PC finder"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Shop by category (Light section) -->
+    <section class="block section--light reveal" aria-labelledby="h-cats">
+      <div class="wrap">
+        <div class="block__head">
+          <div>
+            <span class="eyebrow">Collections</span>
+            <h2 id="h-cats">Shop by category</h2>
+          </div>
+          <a class="more" href="/shop">See every product</a>
+        </div>
+        <div id="cats"></div>
+      </div>
+    </section>
+
+    <!-- 5. Best sellers (Dark section, horizontal scroll-snap carousel with prev/next arrows and counter) -->
+    <section class="block section--dark reveal" aria-labelledby="h-best">
+      <div class="wrap">
+        <div class="block__head">
+          <div>
+            <span class="eyebrow">Most Popular</span>
+            <h2 id="h-best">Best sellers</h2>
+            <p>The builds and parts people buy most.</p>
+          </div>
+          <div class="carousel-ctl" aria-label="Best sellers carousel controls">
+            <span class="carousel-count tabular" id="best-counter">1 / 1</span>
+            <button class="carousel-arrow" type="button" id="best-prev" aria-label="Previous best sellers">&#8592;</button>
+            <button class="carousel-arrow" type="button" id="best-next" aria-label="Next best sellers">&#8594;</button>
+          </div>
+        </div>
+        <div class="tabs" id="best-tabs"></div>
+        <div class="carousel-rail" id="best-grid" tabindex="0"></div>
+      </div>
+    </section>
+
+    <!-- 6. Biggest discounts (Light section, same card style, discount badge + struck-through old price) -->
+    <section class="block section--light reveal" aria-labelledby="h-deals">
+      <div class="wrap">
+        <div class="block__head">
+          <div>
+            <span class="eyebrow">Limited Offers</span>
+            <h2 id="h-deals">Biggest discounts</h2>
+            <p>In-stock products with the largest price cuts.</p>
+          </div>
+          <div class="block__head-right">
+            <div class="carousel-ctl" aria-label="Deals carousel controls">
+              <span class="carousel-count tabular" id="deals-counter">1 / 1</span>
+              <button class="carousel-arrow" type="button" id="deals-prev" aria-label="Previous deals">&#8592;</button>
+              <button class="carousel-arrow" type="button" id="deals-next" aria-label="Next deals">&#8594;</button>
+            </div>
+            <a class="more" href="/shop?sort=discount">See all deals</a>
+          </div>
+        </div>
+        <div class="carousel-rail" id="deals" tabindex="0"></div>
+      </div>
+    </section>
+
+    <!-- 7. Choose every part yourself (Dark section, split layout with text and visual) -->
+    <section class="block section--dark reveal" aria-labelledby="h-build">
+      <div class="wrap banner">
+        <div class="banner__copy">
+          <span class="eyebrow">Custom PC Builder</span>
+          <h2 id="h-build">Choose every part yourself</h2>
+          <p>Pick a processor, board, memory and more. The builder checks that the parts fit together and estimates the power supply you need.</p>
+          <div class="btn-row">
+            <a class="btn btn--primary" href="/build">Start a custom build</a>
+            <a class="btn btn--outline-white" id="build-wa" href="#" target="_blank" rel="noopener noreferrer">Ask us on WhatsApp</a>
+          </div>
+        </div>
+        <div class="banner__visual">
+          <div class="banner__photo-wrap">
+            <img class="banner__photo" src="/src/assets/images/cat_pc_components_1795498053492.jpg" alt="Precision PC components including graphics card, motherboard, memory, and NVMe SSD" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true;">
+          </div>
+          <ul class="slots" aria-label="What the builder checks">
+            <li id="slot-1"></li><li id="slot-2"></li><li id="slot-3"></li><li id="slot-4"></li><li id="slot-5"></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. What you get with every PC (Light section) -->
+    <section class="block section--light reveal" aria-labelledby="h-facts">
+      <div class="wrap two">
+        <div>
+          <span class="eyebrow">Built With Care</span>
+          <h2 id="h-facts">What you get with every PC</h2>
+          <ul class="facts" id="facts"></ul>
+        </div>
+        <div class="report" id="report"></div>
+      </div>
+    </section>
+
+    <!-- 9. Split the cost (Dark section, EMI calculator) -->
+    <section class="block section--dark reveal" aria-labelledby="h-emi">
+      <div class="wrap">
+        <div class="block__head">
+          <div>
+            <span class="eyebrow">Flexible Monthly Plans</span>
+            <h2 id="h-emi">Split the cost</h2>
+            <p>Check the monthly amount before you decide.</p>
+          </div>
+        </div>
+        <div class="calc" id="calc"></div>
+      </div>
+    </section>
+
+    <!-- 10. From cart to your desk (Light section, numbered steps joined by thin line) -->
+    <section class="block section--light reveal" aria-labelledby="h-steps">
+      <div class="wrap">
+        <div class="block__head">
+          <div>
+            <span class="eyebrow">How It Works</span>
+            <h2 id="h-steps">From cart to your desk</h2>
+          </div>
+        </div>
+        <ol class="steps" id="steps"></ol>
+      </div>
+    </section>
+
+    <!-- 11. Brands we stock (Light section, greyscale turning to colour on hover) -->
+    <section class="block block--tight section--light-alt reveal" aria-labelledby="h-brands">
+      <div class="wrap">
+        <div class="block__head">
+          <div>
+            <span class="eyebrow">Trusted Hardware</span>
+            <h2 id="h-brands">Brands we stock</h2>
+          </div>
+        </div>
+        <div class="brands" id="brands"></div>
+      </div>
+    </section>
+
+    <!-- Recently viewed (kept when user has browsed products) -->
+    <section class="block block--tight section--light reveal" id="recent-sec" aria-labelledby="h-recent" hidden>
+      <div class="wrap">
+        <div class="block__head">
+          <div>
+            <span class="eyebrow">Your History</span>
+            <h2 id="h-recent">Recently viewed</h2>
+          </div>
+        </div>
+        <div class="carousel-rail" id="recent"></div>
+      </div>
+    </section>
+
+    <!-- 12. Questions people ask (Light section, accordion + closing line) -->
+    <section class="block section--light reveal" aria-labelledby="h-faq">
+      <div class="wrap two">
+        <div>
+          <span class="eyebrow">Help Center</span>
+          <h2 id="h-faq">Questions people ask</h2>
+          <p class="lead">Not here? Message us and we will answer.</p>
+        </div>
+        <div>
+          <div class="faq" id="faq"></div>
+          <p class="faq__close">Still have questions? <a id="faq-wa" href="#" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a> or <a href="/contact">visit the contact page</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. Not sure which PC to pick? (Dark CTA band) -->
+    <section class="block section--dark cta-band reveal" aria-labelledby="h-help">
+      <div class="wrap cta-band__row">
+        <div>
+          <span class="eyebrow">Talk To A Builder</span>
+          <h2 id="h-help">Not sure which PC to pick?</h2>
+          <p>Tell us your budget and what you will use the PC for. We will suggest a build on WhatsApp.</p>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn--primary" id="cta-wa" href="#" target="_blank" rel="noopener noreferrer">Message on WhatsApp</a>
+          <a class="btn btn--outline-white" id="cta-call" href="#"></a>
+          <a class="btn btn--outline-white" href="/contact">Contact page</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/util.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/data.js"></script>
+  <script src="/js/store.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/rgb-hero.js"></script>
+  <script src="/js/home.js"></script>
+  <script src="/js/compat.js"></script>
+  <script src="/js/assistant-kb.js"></script>
+  <script src="/js/assistant-brain.js"></script>
+  <script src="/js/assistant.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "yourbrand-pc-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "YourBrand PC Store - Gaming, editing, trading and office PCs, custom PC builder, and store assistant.",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node --check server.js",
+    "lint": "node --check server.js"
+  },
+  "dependencies": {
+    "@google/genai": "^3.6.1",
+    "express": "^4.21.2"
+  }
+}
