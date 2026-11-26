@@ -12,11 +12,12 @@
   const esc = PCS.util.esc, money = PCS.util.money, icon = PCS.icon, brain = PCS.brain;
   const KEY = 'pcs.chat';
   const OPENED_KEY = 'pcs.advisor.opened';
+  const TIP_SEEN_KEY = 'pcs.advisor.tipSeen';
   const MAX_KEPT = 40;
   const QUICK_CHIPS = ['Gaming PC', 'Video editing', 'Trading setup', 'Office PC', 'Talk on WhatsApp'];
 
   const fine = () => !!(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
-  const phone = () => !!(window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
+  const phone = () => !!(window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
 
   function env() {
     const page = document.body.dataset.page || '';
@@ -25,7 +26,14 @@
   }
 
   let hasOpenedBefore = false;
-  try { hasOpenedBefore = localStorage.getItem(OPENED_KEY) === '1'; } catch (_e) { hasOpenedBefore = false; }
+  let hasTipSeen = false;
+  try {
+    hasOpenedBefore = localStorage.getItem(OPENED_KEY) === '1';
+    hasTipSeen = localStorage.getItem(TIP_SEEN_KEY) === '1';
+  } catch (_e) {
+    hasOpenedBefore = false;
+    hasTipSeen = false;
+  }
 
   let S = { msgs: [], state: brain ? brain.initialState() : {}, open: false };
   try {
@@ -148,16 +156,35 @@
     return node;
   }
 
+  let tipTimer = 0;
+  function dismissPhoneTipForever() {
+    if (tipTimer) {
+      clearTimeout(tipTimer);
+      tipTimer = 0;
+    }
+    const tip = document.querySelector('#hdr-advisor-tip');
+    if (tip) tip.hidden = true;
+    try { localStorage.setItem(TIP_SEEN_KEY, '1'); } catch (_e) { /* ignore */ }
+  }
+
   function hideLabelForever() {
     const lbl = root.querySelector('#ca-label');
     if (lbl) lbl.remove();
+    dismissPhoneTipForever();
     try { localStorage.setItem(OPENED_KEY, '1'); } catch (_e) { /* ignore */ }
+  }
+
+  function setExpanded(expanded) {
+    const val = expanded ? 'true' : 'false';
+    launch.setAttribute('aria-expanded', val);
+    const hdrBtn = document.querySelector('#hdr-advisor-btn');
+    if (hdrBtn) hdrBtn.setAttribute('aria-expanded', val);
   }
 
   function open(focus) {
     S.open = true;
     panel.hidden = false;
-    launch.setAttribute('aria-expanded', 'true');
+    setExpanded(true);
     document.body.classList.add('ca-lock');
     hideLabelForever();
     if (!log.childElementCount) draw();
@@ -168,7 +195,7 @@
   function close() {
     S.open = false;
     panel.hidden = true;
-    launch.setAttribute('aria-expanded', 'false');
+    setExpanded(false);
     document.body.classList.remove('ca-lock');
     save();
   }
@@ -358,6 +385,12 @@
     save();
   }
 
+  function focusTrigger() {
+    const hdrBtn = document.querySelector('#hdr-advisor-btn');
+    if (phone() && hdrBtn) hdrBtn.focus();
+    else launch.focus();
+  }
+
   launch.addEventListener('click', () => (S.open ? close() : open()));
   form.addEventListener('submit', e => { e.preventDefault(); send(input.value); });
   panel.addEventListener('click', e => {
@@ -367,15 +400,60 @@
     if (chip) { send(chip.dataset.chip); if (fine()) input.focus({ preventScroll: true }); return; }
     const btn = e.target.closest('[data-ca]');
     if (!btn) return;
-    if (btn.dataset.ca === 'close') { close(); launch.focus(); }
+    if (btn.dataset.ca === 'close') { close(); focusTrigger(); }
     if (btn.dataset.ca === 'reset') reset();
   });
-  root.addEventListener('keydown', e => { if (e.key === 'Escape' && S.open) { close(); launch.focus(); } });
+  root.addEventListener('keydown', e => { if (e.key === 'Escape' && S.open) { close(); focusTrigger(); } });
 
   if (S.open && !phone()) open(false);
   else if (S.open) { S.open = false; save(); }
 
   document.addEventListener('click', e => { if (e.target.closest('[data-ask-ai]')) { e.preventDefault(); open(); } });
+
+  (function initPhoneTooltip() {
+    const tip = document.querySelector('#hdr-advisor-tip');
+    if (!tip || !phone() || hasOpenedBefore || hasTipSeen || S.open) return;
+
+    tip.hidden = false;
+    let active = true;
+
+    function finishTip() {
+      if (!active) return;
+      active = false;
+      document.removeEventListener('pointerdown', onTapAnywhere, true);
+      document.removeEventListener('click', onTapAnywhere, true);
+      dismissPhoneTipForever();
+    }
+
+    function onTapAnywhere() {
+      finishTip();
+    }
+
+    function armTip() {
+      if (!active || tip.hidden) return;
+      tipTimer = setTimeout(finishTip, 5000);
+      document.addEventListener('pointerdown', onTapAnywhere, { capture: true, once: true });
+      document.addEventListener('click', onTapAnywhere, { capture: true, once: true });
+    }
+
+    const introOpen = () =>
+      document.documentElement.classList.contains('intro-active') ||
+      Boolean(document.getElementById('intro-splash'));
+
+    if (!introOpen()) {
+      armTip();
+    } else if (typeof MutationObserver === 'function') {
+      const obs = new MutationObserver(() => {
+        if (!introOpen()) {
+          obs.disconnect();
+          armTip();
+        }
+      });
+      obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+    } else {
+      armTip();
+    }
+  })();
 
   PCS.assistant = { open: open, close: close, ask: send, reset: reset };
 })(window.PCS);

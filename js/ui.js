@@ -45,6 +45,13 @@
               <ul>${links}</ul>
             </nav>
             <div class="hdr__actions">
+              <div class="hdr-advisor-wrap">
+                <button class="icon-btn hdr-advisor-btn" type="button" id="hdr-advisor-btn" data-ask-ai aria-haspopup="dialog" aria-expanded="false" aria-controls="ca-panel" aria-label="Ask our PC advisor">
+                  <span class="hdr-advisor-btn__ring" aria-hidden="true">${icon('chat', 20)}</span>
+                  <span class="hdr-advisor-btn__ai" aria-hidden="true">AI</span>
+                </button>
+                <div class="hdr-advisor-tip" id="hdr-advisor-tip" role="status" hidden>Ask our PC advisor</div>
+              </div>
               <button class="icon-btn" type="button" id="hdr-search-toggle" aria-expanded="false" aria-controls="hdr-search-bar" aria-label="Search store">${icon('search', 20)}</button>
               <a class="icon-btn" href="/shop?wish=1" aria-label="Wishlist">${icon('heart', 20)}<span class="badge" data-wish-count></span></a>
               <a class="icon-btn" href="/cart" aria-label="Cart">${icon('cart', 20)}<span class="badge" data-cart-count></span></a>

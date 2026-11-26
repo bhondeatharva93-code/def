@@ -302,5 +302,12 @@ test('mounted top header includes Ask our PC advisor trigger with data-ask-ai', 
   ctx.PCS.ui.mount('home');
   assert.match(injectedHtml, /class="announce__advisor"[^>]*data-ask-ai/);
   assert.match(injectedHtml, /Ask our PC advisor/);
+  assert.match(injectedHtml, /id="hdr-advisor-btn"[^>]*data-ask-ai[^>]*aria-label="Ask our PC advisor"/);
+  assert.match(injectedHtml, /class="hdr-advisor-btn__ai"[^>]*>AI<\/span>/);
+  assert.match(injectedHtml, /id="hdr-advisor-tip"[^>]*hidden>Ask our PC advisor<\/div>/);
+  assert.ok(
+    injectedHtml.indexOf('id="hdr-advisor-btn"') < injectedHtml.indexOf('id="hdr-search-toggle"'),
+    'header advisor button should appear immediately to the left of search icon'
+  );
 });
 
