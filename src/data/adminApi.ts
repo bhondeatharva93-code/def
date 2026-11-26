@@ -49,10 +49,30 @@ export interface AdminSession {
 export const UNAUTHORIZED_ADMIN_MESSAGE =
   'This Google account is not allowed to use the admin panel.';
 
-export async function verifyOrBootstrapAdmin(user: User): Promise<AdminUserRecord | null> {
+const pendingAdminChecks = new Map<string, Promise<AdminUserRecord | null>>();
+
+function formatAuthCheckError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err || '');
+  try {
+    const parsed = JSON.parse(raw) as { error?: string; path?: string | null };
+    if (parsed && parsed.error) {
+      return parsed.path
+        ? `Permission check failed (${parsed.path}): ${parsed.error}`
+        : `Permission check failed: ${parsed.error}`;
+    }
+  } catch {
+    // Plain error string
+  }
+  return raw || 'Could not verify admin permissions.';
+}
+
+async function runVerifyOrBootstrapAdmin(user: User): Promise<AdminUserRecord | null> {
   const rawEmail = (user.email || '').trim().toLowerCase();
-  if (!rawEmail || !user.emailVerified) {
+  if (!rawEmail) {
     return null;
+  }
+  if (!user.emailVerified) {
+    throw new Error('Your Google account email address is not verified.');
   }
 
   const adminPath = `admins/${rawEmail}`;
@@ -61,12 +81,15 @@ export async function verifyOrBootstrapAdmin(user: User): Promise<AdminUserRecor
   try {
     const snap = await getDoc(adminRef);
     if (snap.exists()) {
-      const data = snap.data() as Partial<AdminUserRecord>;
+      const data = (snap.data() || {}) as Partial<AdminUserRecord>;
       return {
         email: rawEmail,
         role: data.role === 'owner' ? 'owner' : 'editor',
-        displayName: data.displayName || user.displayName || '',
-        addedBy: data.addedBy || '',
+        displayName:
+          typeof data.displayName === 'string' && data.displayName
+            ? data.displayName
+            : user.displayName || '',
+        addedBy: typeof data.addedBy === 'string' ? data.addedBy : '',
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
@@ -86,6 +109,26 @@ export async function verifyOrBootstrapAdmin(user: User): Promise<AdminUserRecor
           updatedAt: serverTimestamp(),
         });
       } catch (writeErr) {
+        // In case another concurrent sign-in created the record moments earlier, re-read once
+        try {
+          const retrySnap = await getDoc(adminRef);
+          if (retrySnap.exists()) {
+            const retryData = (retrySnap.data() || {}) as Partial<AdminUserRecord>;
+            return {
+              email: rawEmail,
+              role: retryData.role === 'owner' ? 'owner' : 'editor',
+              displayName:
+                typeof retryData.displayName === 'string' && retryData.displayName
+                  ? retryData.displayName
+                  : record.displayName,
+              addedBy: typeof retryData.addedBy === 'string' ? retryData.addedBy : rawEmail,
+              createdAt: retryData.createdAt,
+              updatedAt: retryData.updatedAt,
+            };
+          }
+        } catch {
+          // Fall through to report the original create error
+        }
         handleFirestoreError(writeErr, OperationType.CREATE, adminPath);
       }
       return record;
@@ -102,12 +145,26 @@ export async function verifyOrBootstrapAdmin(user: User): Promise<AdminUserRecor
   }
 }
 
+export async function verifyOrBootstrapAdmin(user: User): Promise<AdminUserRecord | null> {
+  const key = (user.email || user.uid || '').trim().toLowerCase();
+  if (!key) return null;
+  const inflight = pendingAdminChecks.get(key);
+  if (inflight) {
+    return inflight;
+  }
+  const promise = runVerifyOrBootstrapAdmin(user).finally(() => {
+    pendingAdminChecks.delete(key);
+  });
+  pendingAdminChecks.set(key, promise);
+  return promise;
+}
+
 export async function signInAdminWithGoogle(): Promise<AdminSession> {
   await testConnection();
   const cred = await signInWithPopup(auth, googleProvider);
   const admin = await verifyOrBootstrapAdmin(cred.user);
   if (!admin) {
-    await signOut(auth);
+    await signOut(auth).catch(() => {});
     throw new Error(UNAUTHORIZED_ADMIN_MESSAGE);
   }
   return { user: cred.user, admin };
@@ -118,25 +175,45 @@ export async function signOutAdmin(): Promise<void> {
 }
 
 export function subscribeAdminAuth(
-  onSession: (session: AdminSession | null, authError?: string) => void
+  onSession: (session: AdminSession | null, authError?: string) => void,
+  onCheckingChange?: (checking: boolean) => void
 ): () => void {
+  let pendingRejectionError = '';
+  let activeCheckId = 0;
+
   return onAuthStateChanged(auth, async (user) => {
+    const checkId = ++activeCheckId;
     if (!user) {
-      onSession(null);
+      onCheckingChange?.(false);
+      const errToPreserve = pendingRejectionError;
+      pendingRejectionError = '';
+      onSession(null, errToPreserve || undefined);
       return;
     }
+
+    onCheckingChange?.(true);
     try {
       const admin = await verifyOrBootstrapAdmin(user);
+      if (checkId !== activeCheckId) return;
       if (!admin) {
-        await signOut(auth);
+        pendingRejectionError = UNAUTHORIZED_ADMIN_MESSAGE;
         onSession(null, UNAUTHORIZED_ADMIN_MESSAGE);
+        await signOut(auth).catch(() => {});
         return;
       }
+      pendingRejectionError = '';
       onSession({ user, admin });
     } catch (err) {
+      if (checkId !== activeCheckId) return;
       console.error('[admin-auth]', err);
+      const message = formatAuthCheckError(err);
+      pendingRejectionError = message;
+      onSession(null, message);
       await signOut(auth).catch(() => {});
-      onSession(null, UNAUTHORIZED_ADMIN_MESSAGE);
+    } finally {
+      if (checkId === activeCheckId) {
+        onCheckingChange?.(false);
+      }
     }
   });
 }
@@ -146,9 +223,16 @@ export async function fetchAllCollectionDocs(
 ): Promise<CatalogItem[]> {
   try {
     const snap = await getDocs(collection(db, colName));
+    if (!snap || snap.empty) {
+      return [];
+    }
     return snap.docs
-      .map((d) => normalizeCatalogItem({ ...d.data(), id: d.id }))
-      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
+      .map((d) => normalizeCatalogItem({ ...(d.data() || {}), id: d.id }))
+      .sort(
+        (a, b) =>
+          (a.sortOrder ?? 0) - (b.sortOrder ?? 0) ||
+          (a.name || '').localeCompare(b.name || '')
+      );
   } catch (err) {
     handleFirestoreError(err, OperationType.LIST, colName);
   }
@@ -333,19 +417,28 @@ export async function importSeedDataToFirestore(overwriteExisting: boolean): Pro
 export async function fetchAdmins(): Promise<AdminUserRecord[]> {
   try {
     const snap = await getDocs(collection(db, 'admins'));
+    if (!snap || snap.empty) {
+      return [];
+    }
     return snap.docs
       .map((d) => {
-        const data = d.data() as Partial<AdminUserRecord>;
+        const data = (d.data() || {}) as Partial<AdminUserRecord>;
         return {
-          email: d.id,
+          email: d.id || '',
           role: data.role === 'owner' ? 'owner' : 'editor',
-          displayName: data.displayName || '',
-          addedBy: data.addedBy || '',
+          displayName: typeof data.displayName === 'string' ? data.displayName : '',
+          addedBy: typeof data.addedBy === 'string' ? data.addedBy : '',
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
         } as AdminUserRecord;
       })
-      .sort((a, b) => (a.role === 'owner' ? -1 : b.role === 'owner' ? 1 : a.email.localeCompare(b.email)));
+      .sort((a, b) =>
+        a.role === 'owner' && b.role !== 'owner'
+          ? -1
+          : b.role === 'owner' && a.role !== 'owner'
+          ? 1
+          : (a.email || '').localeCompare(b.email || '')
+      );
   } catch (err) {
     handleFirestoreError(err, OperationType.LIST, 'admins');
   }

@@ -185,3 +185,31 @@ test('Admin routes are noindex, hidden from public site, and configured across a
   assert.match(serverJs, /ensureClientBundles/);
   assert.match(serverJs, /path\.extname\(req\.path\)/);
 });
+
+test('Admin entry wraps AdminApp in ErrorBoundary with Reload button and AdminApp calls all hooks before early returns', () => {
+  const mainTsx = fs.readFileSync(path.join(ROOT, 'src/admin/main.tsx'), 'utf8');
+  assert.match(mainTsx, /<ErrorBoundary>\s*<AdminApp\s*\/>\s*<\/ErrorBoundary>/);
+
+  const ebTsx = fs.readFileSync(path.join(ROOT, 'src/admin/components/ErrorBoundary.tsx'), 'utf8');
+  assert.match(ebTsx, /getDerivedStateFromError/);
+  assert.match(ebTsx, /componentDidCatch/);
+  assert.match(ebTsx, />\s*Reload\s*</);
+
+  const appTsx = fs.readFileSync(path.join(ROOT, 'src/admin/App.tsx'), 'utf8');
+  const firstEarlyReturnIdx = appTsx.search(/if\s*\(!authReady[^)]*\)\s*\{\s*return\s*\(/);
+  assert.ok(firstEarlyReturnIdx > 0, 'AdminApp should have authReady JSX early return');
+  const afterFirstReturn = appTsx.slice(firstEarlyReturnIdx);
+  assert.equal(
+    /\buse(State|Effect|Callback|Memo|Ref)\s*\(/.test(afterFirstReturn),
+    false,
+    'No React hooks may be called after conditional early returns in AdminApp'
+  );
+
+  const emptyNormalized = catalogHelpers.normalizeCatalogItem({});
+  assert.equal(emptyNormalized.name, '');
+  assert.equal(emptyNormalized.brand, '');
+  assert.equal(emptyNormalized.price, 0);
+  assert.deepEqual(emptyNormalized.specs, []);
+  assert.deepEqual(emptyNormalized.tags, []);
+});
+

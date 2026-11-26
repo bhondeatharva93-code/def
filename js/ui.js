@@ -33,7 +33,8 @@
       <a class="skip" href="#main">Skip to content</a>
       <div class="announce">
         <div class="wrap announce__row">
-          <span>${esc(cfg.ticker.join('  ·  '))}</span>
+          <span class="announce__ticker">${esc(cfg.ticker.join('  ·  '))}</span>
+          <button class="announce__advisor" type="button" data-ask-ai>${icon('chat', 14)}<span>Ask our PC advisor</span></button>
         </div>
       </div>
       <header class="hdr${isHome ? ' hdr--hero' : ' is-solid'}" id="site-hdr">

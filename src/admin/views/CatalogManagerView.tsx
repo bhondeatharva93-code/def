@@ -21,6 +21,7 @@ interface CatalogManagerViewProps {
   mode: 'products' | 'builderParts';
   items: CatalogItem[];
   loading: boolean;
+  error?: string;
   onRefresh: () => Promise<void>;
   onOpenNew: (defaultCat?: string) => void;
   onOpenEdit: (item: CatalogItem) => void;
@@ -35,6 +36,7 @@ export function CatalogManagerView({
   mode,
   items,
   loading,
+  error,
   onRefresh,
   onOpenNew,
   onOpenEdit,
@@ -42,6 +44,7 @@ export function CatalogManagerView({
   onAskConfirm,
   onToast,
 }: CatalogManagerViewProps) {
+  const safeItems = useMemo(() => (Array.isArray(items) ? items : []), [items]);
   const [slotTab, setSlotTab] = useState<BuilderSlotId>('cpu');
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('all');
@@ -61,19 +64,20 @@ export function CatalogManagerView({
   }, [mode, slotTab, search, catFilter, brandFilter, stockFilter, visibleFilter, sortBy]);
 
   const slotScopedItems = useMemo(() => {
-    if (mode !== 'builderParts') return items;
-    return items.filter((i) => i.cat === slotTab);
-  }, [items, mode, slotTab]);
+    if (mode !== 'builderParts') return safeItems;
+    return safeItems.filter((i) => i?.cat === slotTab);
+  }, [safeItems, mode, slotTab]);
 
   const brands = useMemo(() => {
     const set = new Set<string>();
-    slotScopedItems.forEach((i) => i.brand && set.add(i.brand));
+    slotScopedItems.forEach((i) => i?.brand && set.add(i.brand));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [slotScopedItems]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = slotScopedItems.filter((item) => {
+      if (!item) return false;
       if (mode === 'products' && catFilter !== 'all' && item.cat !== catFilter) return false;
       if (brandFilter !== 'all' && item.brand !== brandFilter) return false;
       if (stockFilter === 'in' && !item.stock) return false;
@@ -81,18 +85,19 @@ export function CatalogManagerView({
       if (visibleFilter === 'visible' && item.visible === false) return false;
       if (visibleFilter === 'hidden' && item.visible !== false) return false;
       if (q) {
-        const hay = `${item.id} ${item.name} ${item.brand} ${item.cat} ${(item.specs || []).join(' ')}`.toLowerCase();
+        const specs = Array.isArray(item.specs) ? item.specs.join(' ') : '';
+        const hay = `${item.id || ''} ${item.name || ''} ${item.brand || ''} ${item.cat || ''} ${specs}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
 
     const sorted = [...list];
-    if (sortBy === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
-    else if (sortBy === 'priceAsc') sorted.sort((a, b) => a.price - b.price);
-    else if (sortBy === 'priceDesc') sorted.sort((a, b) => b.price - a.price);
-    else if (sortBy === 'brand') sorted.sort((a, b) => a.brand.localeCompare(b.brand) || a.name.localeCompare(b.name));
-    else sorted.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
+    if (sortBy === 'name') sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    else if (sortBy === 'priceAsc') sorted.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    else if (sortBy === 'priceDesc') sorted.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+    else if (sortBy === 'brand') sorted.sort((a, b) => (a.brand || '').localeCompare(b.brand || '') || (a.name || '').localeCompare(b.name || ''));
+    else sorted.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || (a.name || '').localeCompare(b.name || ''));
     return sorted;
   }, [slotScopedItems, mode, catFilter, brandFilter, stockFilter, visibleFilter, search, sortBy]);
 
@@ -223,7 +228,7 @@ export function CatalogManagerView({
   };
 
   const handleDownloadCsv = () => {
-    const csv = exportCatalogCsv(mode === 'builderParts' ? items : filtered, mode);
+    const csv = exportCatalogCsv(mode === 'builderParts' ? safeItems : filtered, mode);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -240,8 +245,8 @@ export function CatalogManagerView({
     if (item.cat === 'ram') return item.type || '-';
     if (item.cat === 'gpu') return `${item.tdp ?? 0}W TDP`;
     if (item.cat === 'psu') return `${item.watt ?? 0}W`;
-    if (item.cat === 'cooler') return (item.sockets || []).join(', ') || '-';
-    if (item.cat === 'case') return (item.supports || []).join(', ') || '-';
+    if (item.cat === 'cooler') return (Array.isArray(item.sockets) ? item.sockets : []).join(', ') || '-';
+    if (item.cat === 'case') return (Array.isArray(item.supports) ? item.supports : []).join(', ') || '-';
     return CAT_BY_ID[item.cat]?.label || item.cat;
   };
 
@@ -250,7 +255,7 @@ export function CatalogManagerView({
       {mode === 'builderParts' && (
         <div className="cg-slot-tabs" role="tablist" aria-label="Builder part types">
           {BUILDER_SLOTS.map((slot) => {
-            const count = items.filter((i) => i.cat === slot.id).length;
+            const count = safeItems.filter((i) => i?.cat === slot.id).length;
             return (
               <button
                 key={slot.id}
@@ -402,6 +407,15 @@ export function CatalogManagerView({
               Delete
             </button>
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="cg-alert-error cg-alert-error--light" role="alert" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <span>Failed to load items from Firestore: {error}</span>
+          <button type="button" className="cg-btn cg-btn--sm" onClick={() => void onRefresh()}>
+            Retry
+          </button>
         </div>
       )}
 
@@ -686,7 +700,7 @@ export function CatalogManagerView({
       <CsvModal
         open={csvOpen}
         mode={mode}
-        existingItems={items}
+        existingItems={safeItems}
         onClose={() => setCsvOpen(false)}
         onImported={async (res) => {
           await onRefresh();

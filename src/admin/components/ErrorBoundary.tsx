@@ -4,9 +4,10 @@ interface State {
   error: Error | null;
 }
 
-function formatErrorMessage(err: Error): string {
+function formatErrorMessage(err: Error | unknown): string {
+  const raw = err instanceof Error ? err.message : String(err || '');
   try {
-    const parsed = JSON.parse(err.message) as {
+    const parsed = JSON.parse(raw) as {
       error?: string;
       operationType?: string;
       path?: string | null;
@@ -18,7 +19,7 @@ function formatErrorMessage(err: Error): string {
   } catch {
     // Plain error message
   }
-  return err.message || 'An unexpected error occurred.';
+  return raw || 'An unexpected error occurred in the admin panel.';
 }
 
 export class ErrorBoundary extends React.Component<{ children: React.ReactNode }, State> {
@@ -26,6 +27,10 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[admin-error-boundary]', error, info?.componentStack || '');
   }
 
   render() {
@@ -43,7 +48,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
                 window.location.reload();
               }}
             >
-              Reload Admin Panel
+              Reload
             </button>
           </div>
         </div>

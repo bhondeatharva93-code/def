@@ -5,6 +5,8 @@ interface DashboardViewProps {
   products: CatalogItem[];
   builderParts: CatalogItem[];
   loading: boolean;
+  error?: string;
+  onRetry?: () => void;
   onAddProduct: () => void;
   onNavigateTab: (tab: 'products' | 'builderParts' | 'settings') => void;
 }
@@ -13,20 +15,35 @@ export function DashboardView({
   products,
   builderParts,
   loading,
+  error,
+  onRetry,
   onAddProduct,
   onNavigateTab,
 }: DashboardViewProps) {
-  const allItems = [...products, ...builderParts];
-  const inStockCount = allItems.filter((i) => i.stock).length;
-  const outStockCount = allItems.filter((i) => !i.stock).length;
-  const hiddenCount = allItems.filter((i) => i.visible === false).length;
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeBuilderParts = Array.isArray(builderParts) ? builderParts : [];
+  const allItems = [...safeProducts, ...safeBuilderParts];
+  const inStockCount = allItems.filter((i) => Boolean(i?.stock)).length;
+  const outStockCount = allItems.filter((i) => !i?.stock).length;
+  const hiddenCount = allItems.filter((i) => i?.visible === false).length;
 
   return (
     <div style={{ display: 'grid', gap: '1.25rem' }}>
+      {error && (
+        <div className="cg-alert-error cg-alert-error--light" role="alert" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <span>Could not load catalog from Firestore: {error}</span>
+          {onRetry && (
+            <button type="button" className="cg-btn cg-btn--sm" onClick={onRetry}>
+              Retry
+            </button>
+          )}
+        </div>
+      )}
+
       <section className="cg-stats-grid" aria-label="Catalog summary">
         <div className="cg-stat-card">
           <span className="cg-stat-card__label">Total products</span>
-          <strong className="cg-stat-card__value">{loading ? '...' : products.length}</strong>
+          <strong className="cg-stat-card__value">{loading ? '...' : safeProducts.length}</strong>
           <span className="cg-stat-card__hint">Storefront PCs, laptops, displays &amp; gear</span>
         </div>
 
@@ -56,7 +73,7 @@ export function DashboardView({
 
         <div className="cg-stat-card">
           <span className="cg-stat-card__label">Total builder parts</span>
-          <strong className="cg-stat-card__value">{loading ? '...' : builderParts.length}</strong>
+          <strong className="cg-stat-card__value">{loading ? '...' : safeBuilderParts.length}</strong>
           <span className="cg-stat-card__hint">CPUs, boards, RAM, GPUs, SSDs, PSUs &amp; cases</span>
         </div>
       </section>
@@ -96,7 +113,7 @@ export function DashboardView({
         </div>
       </section>
 
-      {!loading && products.length === 0 && builderParts.length === 0 && (
+      {!loading && !error && safeProducts.length === 0 && safeBuilderParts.length === 0 && (
         <div className="cg-empty">
           <h3>Your Firestore catalog is currently empty</h3>
           <p>

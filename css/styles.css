@@ -281,16 +281,44 @@ dl, dd { margin: 0; }
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 0.8125rem;
   font-weight: 500;
-  text-align: center;
   min-height: 2.125rem;
   display: flex;
   align-items: center;
 }
 .announce__row {
-  padding: 0.35rem 0;
+  padding-block: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.announce__ticker {
+  min-width: 0;
   white-space: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.announce__advisor {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.625rem;
+  min-height: 1.5625rem;
+  background: rgba(232, 185, 72, 0.14);
+  color: var(--amber-hi);
+  border: 1px solid rgba(232, 185, 72, 0.42);
+  border-radius: var(--r-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.announce__advisor:hover {
+  background: var(--amber);
+  color: var(--amber-ink);
+  border-color: var(--amber);
 }
 
 /* ---------- Header ---------- */

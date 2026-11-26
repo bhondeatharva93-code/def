@@ -280,3 +280,27 @@ test('PCS.offersLogic defines all 7 exact offers with existing image files and v
     'Hello Computer Galaxy, I would like a quotation. My requirement: \nMy budget: '
   );
 });
+
+test('mounted top header includes Ask our PC advisor trigger with data-ask-ai', () => {
+  let injectedHtml = '';
+  const mountEl = {
+    set outerHTML(html) { injectedHtml = String(html); },
+    get outerHTML() { return injectedHtml; }
+  };
+  const ctx = createBrowserStub(true);
+  ctx.history.scrollRestoration = 'auto';
+  ctx.scrollTo = () => {};
+  ctx.IntersectionObserver = function () { return { observe() {}, disconnect() {} }; };
+  ctx.document.querySelector = (sel) => (sel === '#site-header' ? mountEl : null);
+  ctx.document.querySelectorAll = () => [];
+
+  ['config.js', 'util.js', 'icons.js', 'data.js', 'store.js', 'ui.js'].forEach((file) => {
+    const code = fs.readFileSync(path.join(__dirname, '..', 'js', file), 'utf8');
+    vm.runInContext(code, ctx, { filename: file });
+  });
+
+  ctx.PCS.ui.mount('home');
+  assert.match(injectedHtml, /class="announce__advisor"[^>]*data-ask-ai/);
+  assert.match(injectedHtml, /Ask our PC advisor/);
+});
+

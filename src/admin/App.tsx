@@ -24,9 +24,23 @@ function isLoginPath(pathname: string): boolean {
   return pathname.replace(/\/+$/, '') === '/admin/login';
 }
 
+function formatReadableError(err: unknown, fallback: string): string {
+  const raw = err instanceof Error ? err.message : String(err || '');
+  try {
+    const parsed = JSON.parse(raw) as { error?: string; path?: string | null };
+    if (parsed && parsed.error) {
+      return parsed.path ? `${parsed.error} (${parsed.path})` : parsed.error;
+    }
+  } catch {
+    // Plain error string
+  }
+  return raw || fallback;
+}
+
 export function AdminApp() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
   const [authReady, setAuthReady] = useState(false);
+  const [authChecking, setAuthChecking] = useState(false);
   const [session, setSession] = useState<AdminSession | null>(null);
   const [authError, setAuthError] = useState('');
 
@@ -36,6 +50,7 @@ export function AdminApp() {
   const [products, setProducts] = useState<CatalogItem[]>([]);
   const [builderParts, setBuilderParts] = useState<CatalogItem[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
+  const [catalogError, setCatalogError] = useState('');
 
   const [drawerState, setDrawerState] = useState<{
     open: boolean;
@@ -70,35 +85,43 @@ export function AdminApp() {
   }, []);
 
   useEffect(() => {
-    const unsub = subscribeAdminAuth((nextSession, errMsg) => {
-      setSession(nextSession);
-      setAuthError(errMsg || '');
-      setAuthReady(true);
-    });
+    const unsub = subscribeAdminAuth(
+      (nextSession, errMsg) => {
+        setSession(nextSession);
+        setAuthError(nextSession ? '' : errMsg || '');
+        setAuthReady(true);
+      },
+      (checking) => {
+        setAuthChecking(checking);
+      }
+    );
     return unsub;
   }, []);
 
   useEffect(() => {
-    if (!authReady) return;
+    if (!authReady || authChecking) return;
     if (!session && !isLoginPath(pathname)) {
       navigateRoute('/admin/login');
     } else if (session && isLoginPath(pathname)) {
       navigateRoute('/admin');
     }
-  }, [authReady, session, pathname, navigateRoute]);
+  }, [authReady, authChecking, session, pathname, navigateRoute]);
 
   const loadCatalog = useCallback(async () => {
     if (!session) return;
     setLoadingCatalog(true);
+    setCatalogError('');
     try {
       const [prods, parts] = await Promise.all([
         fetchAllCollectionDocs('products'),
         fetchAllCollectionDocs('builderParts'),
       ]);
-      setProducts(prods);
-      setBuilderParts(parts);
+      setProducts(Array.isArray(prods) ? prods : []);
+      setBuilderParts(Array.isArray(parts) ? parts : []);
     } catch (err) {
-      addToast(err instanceof Error ? err.message : 'Failed to load catalog.', 'error');
+      const message = formatReadableError(err, 'Failed to load catalog from Firestore.');
+      setCatalogError(message);
+      addToast(message, 'error');
     } finally {
       setLoadingCatalog(false);
     }
@@ -107,10 +130,34 @@ export function AdminApp() {
   useEffect(() => {
     if (session) {
       void loadCatalog();
+    } else {
+      setProducts([]);
+      setBuilderParts([]);
+      setCatalogError('');
     }
   }, [session, loadCatalog]);
 
   const compatPools = useMemo(() => extractExistingCompatOptions(builderParts), [builderParts]);
+
+  const handleAskConfirm = useCallback(
+    (st: ConfirmState) => {
+      setConfirmState({
+        ...st,
+        onConfirm: async () => {
+          setConfirmBusy(true);
+          try {
+            await st.onConfirm();
+            setConfirmState(null);
+          } catch (err) {
+            addToast(formatReadableError(err, 'Action failed.'), 'error');
+          } finally {
+            setConfirmBusy(false);
+          }
+        },
+      });
+    },
+    [addToast]
+  );
 
   const handleCloseDrawer = (isDirty: boolean) => {
     if (!isDirty) {
@@ -129,11 +176,11 @@ export function AdminApp() {
     });
   };
 
-  if (!authReady) {
+  if (!authReady || authChecking) {
     return (
-      <div className="cg-boot-screen">
+      <div className="cg-boot-screen" role="status" aria-live="polite">
         <div className="cg-boot-spinner" aria-hidden="true" />
-        <p>Checking admin session...</p>
+        <p>{authChecking ? 'Checking admin permissions...' : 'Checking admin session...'}</p>
       </div>
     );
   }
@@ -193,26 +240,6 @@ export function AdminApp() {
       },
     });
   };
-
-  const handleAskConfirm = useCallback(
-    (st: ConfirmState) => {
-      setConfirmState({
-        ...st,
-        onConfirm: async () => {
-          setConfirmBusy(true);
-          try {
-            await st.onConfirm();
-            setConfirmState(null);
-          } catch (err) {
-            addToast(err instanceof Error ? err.message : 'Action failed.', 'error');
-          } finally {
-            setConfirmBusy(false);
-          }
-        },
-      });
-    },
-    [addToast]
-  );
 
   return (
     <ErrorBoundary>
@@ -346,6 +373,8 @@ export function AdminApp() {
                 products={products}
                 builderParts={builderParts}
                 loading={loadingCatalog}
+                error={catalogError}
+                onRetry={() => void loadCatalog()}
                 onAddProduct={() => openNewItem('products')}
                 onNavigateTab={(next) => setTab(next)}
               />
@@ -356,6 +385,7 @@ export function AdminApp() {
                 mode="products"
                 items={products}
                 loading={loadingCatalog}
+                error={catalogError}
                 onRefresh={loadCatalog}
                 onOpenNew={(cat) => openNewItem('products', cat)}
                 onOpenEdit={(item) => openEditItem('products', item)}
@@ -370,6 +400,7 @@ export function AdminApp() {
                 mode="builderParts"
                 items={builderParts}
                 loading={loadingCatalog}
+                error={catalogError}
                 onRefresh={loadCatalog}
                 onOpenNew={(cat) => openNewItem('builderParts', cat)}
                 onOpenEdit={(item) => openEditItem('builderParts', item)}

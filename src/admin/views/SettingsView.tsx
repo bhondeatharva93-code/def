@@ -29,6 +29,7 @@ export function SettingsView({
 }: SettingsViewProps) {
   const [admins, setAdmins] = useState<AdminUserRecord[]>([]);
   const [loadingAdmins, setLoadingAdmins] = useState(true);
+  const [adminsError, setAdminsError] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newName, setNewName] = useState('');
   const [addingAdmin, setAddingAdmin] = useState(false);
@@ -39,11 +40,21 @@ export function SettingsView({
 
   const loadAdmins = async () => {
     setLoadingAdmins(true);
+    setAdminsError('');
     try {
       const list = await fetchAdmins();
-      setAdmins(list);
+      setAdmins(Array.isArray(list) ? list : []);
     } catch (err) {
-      onToast(err instanceof Error ? err.message : 'Could not load admins.', 'error');
+      const raw = err instanceof Error ? err.message : 'Could not load admins.';
+      let msg = raw;
+      try {
+        const parsed = JSON.parse(raw) as { error?: string };
+        if (parsed?.error) msg = parsed.error;
+      } catch {
+        // plain string
+      }
+      setAdminsError(msg);
+      onToast(msg, 'error');
     } finally {
       setLoadingAdmins(false);
     }
@@ -177,6 +188,15 @@ export function SettingsView({
 
         {loadingAdmins ? (
           <p className="cg-field-hint">Loading admins...</p>
+        ) : adminsError ? (
+          <div className="cg-alert-error cg-alert-error--light" role="alert" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <span>Could not load admin accounts: {adminsError}</span>
+            <button type="button" className="cg-btn cg-btn--sm" onClick={() => void loadAdmins()}>
+              Retry
+            </button>
+          </div>
+        ) : admins.length === 0 ? (
+          <p className="cg-field-hint">No admin records found yet.</p>
         ) : (
           <div>
             {admins.map((a) => (
