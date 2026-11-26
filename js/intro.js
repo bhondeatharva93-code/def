@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  var INTERNAL_SUBPAGES = /^\/(?:shop|product|build|cart|contact|policies|about|videos|track-order)(?:\.html)?$/i;
+  var INTERNAL_SUBPAGES = /^\/(?:shop|offers|product|build|cart|contact|policies|about|videos|track-order)(?:\.html)?$/i;
   var SESSION_KEY = 'pcs.yt_intro.seen';
   var YOUTUBE_API_SRC = 'https://www.youtube.com/iframe_api';
 

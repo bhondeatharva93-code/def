@@ -1,0 +1,263 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ---------- Shared Security Primitives ----------
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidEmailId(email) {
+      return email is string && email.size() >= 5 && email.size() <= 254 &&
+        email.matches('^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,}$');
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function hasVerifiedEmail() {
+      return isSignedIn() &&
+        request.auth.token.email_verified == true &&
+        request.auth.token.email is string &&
+        request.auth.token.email.size() >= 5 &&
+        request.auth.token.email.size() <= 254;
+    }
+
+    function authEmailLower() {
+      return request.auth.token.email.lower();
+    }
+
+    function OWNER_EMAILS() {
+      return ["computergalaxysirhoi@gmail.com", "computergalaxysirohi@gmail.com"];
+    }
+
+    function isOwnerBootstrapEmail() {
+      return hasVerifiedEmail() && authEmailLower() in OWNER_EMAILS();
+    }
+
+    function isVerifiedAdmin() {
+      return hasVerifiedEmail() &&
+        exists(/databases/$(database)/documents/admins/$(authEmailLower()));
+    }
+
+    function isVerifiedOwner() {
+      return isVerifiedAdmin() &&
+        get(/databases/$(database)/documents/admins/$(authEmailLower())).data.role == 'owner';
+    }
+
+    function isStr(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidMoney(n) {
+      return (n is int || n is float) && n >= 0 && n <= 10000000;
+    }
+
+    function isNum(n, minVal, maxVal) {
+      return (n is int || n is float) && n >= minVal && n <= maxVal;
+    }
+
+    function isBoundedList(arr, maxItems, maxItemLen) {
+      return arr is list &&
+        arr.size() <= maxItems &&
+        (arr.size() == 0 || (arr[0] is string && arr[0].size() <= maxItemLen));
+    }
+
+    function isValidPartsMap(m) {
+      return m is map &&
+        m.keys().size() <= 8 &&
+        m.keys().hasOnly(['cpu', 'gpu', 'ram', 'ssd', 'psu', 'case', 'motherboard', 'cooler']) &&
+        (!('cpu' in m) || isStr(m.cpu, 0, 200)) &&
+        (!('gpu' in m) || isStr(m.gpu, 0, 200)) &&
+        (!('ram' in m) || isStr(m.ram, 0, 200)) &&
+        (!('ssd' in m) || isStr(m.ssd, 0, 200)) &&
+        (!('psu' in m) || isStr(m.psu, 0, 200)) &&
+        (!('case' in m) || isStr(m.case, 0, 200)) &&
+        (!('motherboard' in m) || isStr(m.motherboard, 0, 200)) &&
+        (!('cooler' in m) || isStr(m.cooler, 0, 200));
+    }
+
+    // ---------- Entity Validation Blueprints ----------
+    function isValidCatalogBase(data, docId) {
+      return data.keys().hasAll(['id', 'cat', 'brand', 'name', 'price', 'mrp', 'stock', 'visible', 'specs', 'tags']) &&
+        data.id == docId &&
+        isValidId(data.id) &&
+        isStr(data.cat, 1, 40) &&
+        isStr(data.brand, 1, 120) &&
+        isStr(data.name, 1, 240) &&
+        isValidMoney(data.price) &&
+        isValidMoney(data.mrp) &&
+        data.stock is bool &&
+        data.visible is bool &&
+        isBoundedList(data.specs, 30, 500) &&
+        isBoundedList(data.tags, 12, 40) &&
+        (!('subcategory' in data) || isStr(data.subcategory, 0, 80)) &&
+        (!('featured' in data) || data.featured is bool) &&
+        (!('sortOrder' in data) || isNum(data.sortOrder, -100000, 1000000)) &&
+        (!('description' in data) || isStr(data.description, 0, 1999)) &&
+        (!('img' in data) || isStr(data.img, 0, 1999)) &&
+        (!('images' in data) || isBoundedList(data.images, 12, 1999)) &&
+        (!('use' in data) || isStr(data.use, 0, 40)) &&
+        (!('parts' in data) || isValidPartsMap(data.parts)) &&
+        (!('socket' in data) || isStr(data.socket, 0, 40)) &&
+        (!('ramType' in data) || isStr(data.ramType, 0, 40)) &&
+        (!('type' in data) || isStr(data.type, 0, 40)) &&
+        (!('form' in data) || isStr(data.form, 0, 40)) &&
+        (!('watt' in data) || isNum(data.watt, 0, 5000)) &&
+        (!('tdp' in data) || isNum(data.tdp, 0, 2000)) &&
+        (!('igpu' in data) || data.igpu is bool) &&
+        (!('sockets' in data) || isBoundedList(data.sockets, 20, 40)) &&
+        (!('supports' in data) || isBoundedList(data.supports, 20, 40)) &&
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidProduct(data, productId) {
+      return isValidCatalogBase(data, productId) &&
+        data.keys().hasOnly([
+          'id', 'cat', 'subcategory', 'brand', 'name', 'price', 'mrp',
+          'stock', 'visible', 'featured', 'sortOrder', 'specs', 'tags',
+          'use', 'parts', 'description', 'img', 'images',
+          'socket', 'ramType', 'type', 'form', 'watt', 'tdp', 'igpu', 'sockets', 'supports',
+          'createdAt', 'updatedAt'
+        ]);
+    }
+
+    function isBuilderSlotCategory(cat) {
+      return cat in ['cpu', 'motherboard', 'ram', 'gpu', 'ssd', 'cooler', 'psu', 'case'];
+    }
+
+    function isValidBuilderPart(data, partId) {
+      return isValidCatalogBase(data, partId) &&
+        isBuilderSlotCategory(data.cat) &&
+        data.keys().hasOnly([
+          'id', 'cat', 'subcategory', 'brand', 'name', 'price', 'mrp',
+          'stock', 'visible', 'featured', 'sortOrder', 'specs', 'tags',
+          'description', 'img', 'images',
+          'socket', 'ramType', 'type', 'form', 'watt', 'tdp', 'igpu', 'sockets', 'supports',
+          'createdAt', 'updatedAt'
+        ]);
+    }
+
+    function isValidAdmin(data, adminEmail) {
+      return data.keys().hasAll(['email', 'role']) &&
+        data.keys().hasOnly(['email', 'role', 'displayName', 'addedBy', 'createdAt', 'updatedAt']) &&
+        isValidEmailId(adminEmail) &&
+        data.email == adminEmail &&
+        data.role in ['owner', 'editor'] &&
+        (!('displayName' in data) || isStr(data.displayName, 0, 120)) &&
+        (!('addedBy' in data) || isStr(data.addedBy, 0, 254)) &&
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    // ---------- Collections ----------
+    match /products/{productId} {
+      allow get: if isValidId(productId);
+      allow list: if true;
+
+      allow create: if isValidId(productId) &&
+        isValidProduct(incoming(), productId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isVerifiedAdmin();
+
+      allow update: if isValidId(productId) &&
+        isValidProduct(incoming(), productId) &&
+        (!('createdAt' in existing()) || incoming().createdAt == existing().createdAt) &&
+        incoming().id == existing().id &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['price', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['stock', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['visible', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'cat', 'subcategory', 'brand', 'name', 'price', 'mrp',
+            'stock', 'visible', 'featured', 'sortOrder', 'specs', 'tags',
+            'use', 'parts', 'description', 'img', 'images',
+            'socket', 'ramType', 'type', 'form', 'watt', 'tdp', 'igpu', 'sockets', 'supports',
+            'updatedAt'
+          ])
+        ) &&
+        isVerifiedAdmin();
+
+      allow delete: if isValidId(productId) && isVerifiedAdmin();
+    }
+
+    match /builderParts/{partId} {
+      allow get: if isValidId(partId);
+      allow list: if true;
+
+      allow create: if isValidId(partId) &&
+        isValidBuilderPart(incoming(), partId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isVerifiedAdmin();
+
+      allow update: if isValidId(partId) &&
+        isValidBuilderPart(incoming(), partId) &&
+        (!('createdAt' in existing()) || incoming().createdAt == existing().createdAt) &&
+        incoming().id == existing().id &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['price', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['stock', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['visible', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'cat', 'subcategory', 'brand', 'name', 'price', 'mrp',
+            'stock', 'visible', 'featured', 'sortOrder', 'specs', 'tags',
+            'description', 'img', 'images',
+            'socket', 'ramType', 'type', 'form', 'watt', 'tdp', 'igpu', 'sockets', 'supports',
+            'updatedAt'
+          ])
+        ) &&
+        isVerifiedAdmin();
+
+      allow delete: if isValidId(partId) && isVerifiedAdmin();
+    }
+
+    match /admins/{adminEmail} {
+      allow get: if isValidEmailId(adminEmail) && (
+        isVerifiedAdmin() ||
+        (hasVerifiedEmail() && authEmailLower() == adminEmail)
+      );
+      allow list: if isVerifiedAdmin();
+
+      allow create: if isValidEmailId(adminEmail) &&
+        isValidAdmin(incoming(), adminEmail) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        (
+          (isOwnerBootstrapEmail() && authEmailLower() == adminEmail && incoming().role == 'owner') ||
+          isVerifiedOwner()
+        );
+
+      allow update: if isValidEmailId(adminEmail) &&
+        isValidAdmin(incoming(), adminEmail) &&
+        (!('createdAt' in existing()) || incoming().createdAt == existing().createdAt) &&
+        incoming().email == existing().email &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['role', 'displayName', 'addedBy', 'updatedAt']) &&
+        isVerifiedOwner() &&
+        (!(adminEmail in OWNER_EMAILS()) || incoming().role == 'owner');
+
+      allow delete: if isValidEmailId(adminEmail) &&
+        !(adminEmail in OWNER_EMAILS()) &&
+        isVerifiedOwner();
+    }
+  }
+}

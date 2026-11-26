@@ -56,6 +56,77 @@ function loadStoreCatalog() {
   };
 }
 
+let liveCache: { data: any; fetchedAt: number } | null = null;
+
+function decodeVal(val: any): any {
+  if (!val || typeof val !== 'object') return undefined;
+  if ('stringValue' in val) return val.stringValue;
+  if ('integerValue' in val) return Number(val.integerValue);
+  if ('doubleValue' in val) return Number(val.doubleValue);
+  if ('booleanValue' in val) return Boolean(val.booleanValue);
+  if ('nullValue' in val) return null;
+  if ('arrayValue' in val) return (val.arrayValue.values || []).map(decodeVal).filter((x: any) => x !== undefined);
+  if ('mapValue' in val) {
+    const out: Record<string, any> = {};
+    Object.keys(val.mapValue.fields || {}).forEach((k) => {
+      out[k] = decodeVal(val.mapValue.fields[k]);
+    });
+    return out;
+  }
+  return undefined;
+}
+
+async function loadLiveCatalog() {
+  const base = loadStoreCatalog();
+  if (liveCache && Date.now() - liveCache.fetchedAt < 120000) return liveCache.data;
+  try {
+    const fbCfg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'firebase-applet-config.json'), 'utf8'));
+    const fetchCol = async (col: string) => {
+      const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(fbCfg.projectId)}/databases/${encodeURIComponent(fbCfg.firestoreDatabaseId)}/documents/${col}?pageSize=500`;
+      const res = await fetch(url, typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? { signal: AbortSignal.timeout(4000) } : undefined);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json: any = await res.json();
+      return (json.documents || []).map((d: any) => {
+        const out: Record<string, any> = {};
+        Object.keys(d.fields || {}).forEach((k) => { out[k] = decodeVal(d.fields[k]); });
+        if (!out.id && d.name) out.id = d.name.split('/').pop();
+        return out;
+      });
+    };
+    const [remoteProds, remoteParts] = await Promise.all([fetchCol('products'), fetchCol('builderParts')]);
+    if (!remoteProds.length && !remoteParts.length) {
+      liveCache = { data: base, fetchedAt: Date.now() };
+      return base;
+    }
+    const merged = new Map<string, any>();
+    remoteProds.concat(remoteParts).forEach((p: any) => {
+      if (p?.id && p.visible !== false && !merged.has(p.id)) merged.set(p.id, p);
+    });
+    const byId: Record<string, any> = {};
+    const products: CatalogProduct[] = Array.from(merged.values()).map((p) => {
+      byId[p.id] = p;
+      return {
+        id: p.id,
+        name: p.name,
+        category: p.cat,
+        use: p.use || '',
+        brand: p.brand,
+        price: Number(p.price) || 0,
+        mrp: Number(p.mrp) || Number(p.price) || 0,
+        discountPct: p.mrp > p.price ? Math.round((1 - p.price / p.mrp) * 100) : 0,
+        inStock: p.stock !== false,
+        specs: Array.isArray(p.specs) ? p.specs : [],
+        parts: p.parts || undefined
+      };
+    });
+    const live = { ...base, products, byId };
+    liveCache = { data: live, fetchedAt: Date.now() };
+    return live;
+  } catch {
+    return base;
+  }
+}
+
 export const handler = async (event: { httpMethod?: string; body?: string | null }) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, body: '' };
@@ -84,7 +155,7 @@ export const handler = async (event: { httpMethod?: string; body?: string | null
     };
   }
 
-  const store = loadStoreCatalog();
+  const store = await loadLiveCatalog();
   const rawMessages = Array.isArray(body?.messages) ? body.messages : [];
   const messages = rawMessages
     .filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
@@ -104,22 +175,31 @@ export const handler = async (event: { httpMethod?: string; body?: string | null
   const activeProduct = productId ? store.byId[productId] : null;
   const cfg = store.config;
 
+  const specialities = (cfg.specialities || []).map((s: { title: string }) => s.title);
+  const coreValues = (cfg.coreValues || []).map((v: { title: string }) => v.title);
+
   const systemInstruction = [
-    `You are the friendly PC advisor for ${cfg.name}, an online computer store in India.`,
+    `You are the friendly PC advisor for ${cfg.name}, a GST-registered computer sales, custom PC building and computer service business located in Sirohi, Rajasthan, India.`,
     'Keep every reply concise and under 60 words.',
     'Reply in the same language the customer uses.',
     'If the customer has not mentioned their use case or budget yet, warmly ask for both.',
     'Suggest /build whenever the customer wants a custom PC build.',
-    'Use ONLY the store settings and product JSON catalogue below. Never invent specs, prices, stock, discounts, EMI terms, warranty, or delivery promises.',
+    specialities.length ? `${cfg.name} specialities you may state accurately: ${specialities.join('; ')}.` : '',
+    coreValues.length ? `${cfg.name} core values: ${coreValues.join('; ')}. Official technology brand: WeblinkitTech.` : '',
+    'Use ONLY the store settings and product JSON catalogue below. Never invent specs, prices, stock, discounts, EMI terms, warranty periods, or delivery promises.',
     'For orders, EMI approval, quotes, or anything unknown, hand off to WhatsApp or /contact.',
     'Politely steer off-topic questions back to PCs.',
     'Return JSON with "reply" and "productIds" (up to 3 valid product IDs).',
     activeProduct ? `Current product page: ${activeProduct.name} (${activeProduct.id}).` : '',
     `STORE INFO JSON: ${JSON.stringify({
       name: cfg.name,
+      location: 'Sirohi, Rajasthan, India',
+      techBrand: 'WeblinkitTech',
       phone: cfg.phone,
       whatsapp: store.whatsappNumber,
       hours: cfg.hours,
+      specialities,
+      coreValues,
       shipping: cfg.shipping,
       emi: cfg.emi,
       faq: cfg.faq

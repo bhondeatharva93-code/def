@@ -1,0 +1,112 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Storefront catalogue product (prebuilt PC, laptop, peripheral, office gear, or component).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "cat": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "subcategory": { "type": "string", "maxLength": 80 },
+        "brand": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "price": { "type": "number" },
+        "mrp": { "type": "number" },
+        "stock": { "type": "boolean" },
+        "visible": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "sortOrder": { "type": "number" },
+        "specs": { "type": "array" },
+        "tags": { "type": "array" },
+        "use": { "type": "string", "maxLength": 40 },
+        "parts": { "type": "object" },
+        "description": { "type": "string", "maxLength": 1999 },
+        "img": { "type": "string", "maxLength": 1999 },
+        "images": { "type": "array" },
+        "socket": { "type": "string", "maxLength": 40 },
+        "ramType": { "type": "string", "maxLength": 40 },
+        "type": { "type": "string", "maxLength": 40 },
+        "form": { "type": "string", "maxLength": 40 },
+        "watt": { "type": "number" },
+        "tdp": { "type": "number" },
+        "igpu": { "type": "boolean" },
+        "sockets": { "type": "array" },
+        "supports": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "cat", "brand", "name", "price", "mrp", "stock", "visible", "specs", "tags"]
+    },
+    "BuilderPart": {
+      "title": "BuilderPart",
+      "description": "Custom PC builder component with compatibility fields.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "cat": {
+          "type": "string",
+          "enum": ["cpu", "motherboard", "ram", "gpu", "ssd", "cooler", "psu", "case"]
+        },
+        "subcategory": { "type": "string", "maxLength": 80 },
+        "brand": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "price": { "type": "number" },
+        "mrp": { "type": "number" },
+        "stock": { "type": "boolean" },
+        "visible": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "sortOrder": { "type": "number" },
+        "specs": { "type": "array" },
+        "tags": { "type": "array" },
+        "description": { "type": "string", "maxLength": 1999 },
+        "img": { "type": "string", "maxLength": 1999 },
+        "images": { "type": "array" },
+        "socket": { "type": "string", "maxLength": 40 },
+        "ramType": { "type": "string", "maxLength": 40 },
+        "type": { "type": "string", "maxLength": 40 },
+        "form": { "type": "string", "maxLength": 40 },
+        "watt": { "type": "number" },
+        "tdp": { "type": "number" },
+        "igpu": { "type": "boolean" },
+        "sockets": { "type": "array" },
+        "supports": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "cat", "brand", "name", "price", "mrp", "stock", "visible", "specs", "tags"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized admin panel user keyed by lowercase email.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 254,
+          "pattern": "^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,}$"
+        },
+        "role": { "type": "string", "enum": ["owner", "editor"] },
+        "displayName": { "type": "string", "maxLength": 120 },
+        "addedBy": { "type": "string", "maxLength": 254 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Publicly readable store catalogue products; writable only by verified admins."
+    },
+    "/builderParts/{partId}": {
+      "schema": { "$ref": "#/entities/BuilderPart" },
+      "description": "Publicly readable custom PC builder components; writable only by verified admins."
+    },
+    "/admins/{adminEmail}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Admin allowlist documents keyed by lowercase email; readable by verified admins, managed by owner."
+    }
+  }
+}

@@ -120,7 +120,7 @@
     ['cctv', /\b(cctv|cameras?|surveillance|dvr)\b/],
     ['prebuilt', /\b(pcs?|computers?|desktops?|prebuilt|pre-built|rigs?|towers?|systems?|setups?)\b/]
   ];
-  const BRANDS = (PCS.brands || []).map(lc);
+  let BRANDS = (PCS.brands || []).map(lc);
 
   function detectUse(s, consumed) {
     const found = [];
@@ -153,16 +153,19 @@
     'support supports processor cpu board motherboard card graphics gpu ram memory ssd drive cabinet case cooler monitor keyboard mouse headset laptop pc computer desktop vs versus difference between').split(' '));
   const UNITISH = /^\d+(gb|tb|mb|mhz|ghz|hz|w|va|kva|mp|p|x|mm)$/;
   const NAME_TK = {};
-  products.forEach(p => { NAME_TK[p.id] = tokens(p.name); });
-
-  /* The words that describe each product, padded with spaces for whole-word tests.
-     (data.js adds category search keywords to _hay, which would make every RAM kit match "ddr4".) */
   const HAY = {};
-  products.forEach(p => {
-    const parts = p.parts ? Object.keys(p.parts).map(k => p.parts[k]).join(' ') : '';
-    HAY[p.id] = ' ' + tokens([p.name, p.brand, p.specs.join(' '), parts, p.use ? useLabel(p.use) : ''].join(' ')).join(' ') + ' ';
-  });
-  const hasTerm = (p, t) => HAY[p.id].indexOf(' ' + t + ' ') !== -1;
+  function rebuildIndex() {
+    BRANDS = (PCS.brands || []).map(lc);
+    Object.keys(NAME_TK).forEach(k => delete NAME_TK[k]);
+    Object.keys(HAY).forEach(k => delete HAY[k]);
+    products.forEach(p => {
+      NAME_TK[p.id] = tokens(p.name);
+      const parts = p.parts ? Object.keys(p.parts).map(k => p.parts[k]).join(' ') : '';
+      HAY[p.id] = ' ' + tokens([p.name, p.brand, (p.specs || []).join(' '), parts, p.use ? useLabel(p.use) : ''].join(' ')).join(' ') + ' ';
+    });
+  }
+  rebuildIndex();
+  const hasTerm = (p, t) => (HAY[p.id] || '').indexOf(' ' + t + ' ') !== -1;
 
   const TECH = /^(ddr\d|am[45]|lga\d{3,4}|pcie\d*|gen\d|usb\d*|hdmi\d*|wifi\d*|sata\d*|nvme\d*)$/;      // standards, not model numbers
   const modelTokens = (tk, consumed) => tk.filter(w =>
@@ -814,6 +817,8 @@
     if (!out) out = fallback(e, st, env);
     return { message: out, state: st, conf: out.conf };
   }
+
+  if (PCS.onCatalogUpdate) PCS.onCatalogUpdate(rebuildIndex);
 
   PCS.brain = {
     reply: reply, initialState: initialState, startChips: startChips,

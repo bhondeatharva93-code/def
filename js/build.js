@@ -106,7 +106,10 @@
   function openPicker(slotId) {
     open = slotId;
     const s = PCS.SLOTS.filter(x => x.id === slotId)[0];
-    const list = PCS.products.filter(p => p.cat === slotId).sort((a, b) => a.price - b.price);
+    const source = (PCS.api && PCS.api.getBuilderParts && PCS.api.getBuilderParts().length)
+      ? PCS.api.getBuilderParts()
+      : PCS.products;
+    const list = source.filter(p => p.cat === slotId && p.visible !== false).sort((a, b) => a.price - b.price);
     dlg.innerHTML = `
       <div class="picker__head">
         <h2 id="picker-title">Choose ${esc(s.label.toLowerCase())}</h2>
@@ -160,4 +163,10 @@
   });
 
   render();
+  if (PCS.onCatalogUpdate) {
+    PCS.onCatalogUpdate(function () {
+      sel = load();
+      render();
+    });
+  }
 })(window.PCS);

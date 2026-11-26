@@ -3,8 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Contact and support | YourBrand</title>
-  <meta name="description" content="Visit the store, call or message us, or send a service request for a warranty claim or repair.">
+  <title>Contact Us | Computer Galaxy</title>
+  <meta name="description" content="Contact Computer Galaxy for custom PC builds, gaming computers, computer components, quotations, product enquiries and technical support.">
+  <meta property="og:title" content="Contact Us | Computer Galaxy">
+  <meta property="og:description" content="Contact Computer Galaxy for custom PC builds, gaming computers, computer components, quotations, product enquiries and technical support.">
+  <meta property="og:type" content="website">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,43 +21,89 @@
   <main id="main">
     <div class="wrap">
       <div class="pagehead">
-        <ol class="crumbs"><li><a href="/">Home</a></li><li>Contact and support</li></ol>
-        <span class="eyebrow">Support &amp; Storefront</span>
-        <h1>Contact and support</h1>
-        <p>Visit the store, call or message us, or send a service request for a warranty claim, repair or order question.</p>
+        <ol class="crumbs"><li><a href="/">Home</a></li><li>Contact Us</li></ol>
+        <span class="eyebrow">CONTACT US</span>
+        <h1>We Are Here to Help You</h1>
+        <p>Contact Computer Galaxy for custom PC builds, gaming computers, computer components, quotations, product enquiries and technical support.</p>
       </div>
 
       <div class="contact">
-        <section class="panel" aria-labelledby="h-visit">
-          <h2 id="h-visit">Visit or call</h2>
-          <address id="contact-info"></address>
-        </section>
+        <div class="contact__side">
+          <section class="panel" aria-labelledby="h-visit">
+            <h2 id="h-visit">COMPUTER GALAXY</h2>
+            <address id="contact-info"></address>
+            <div class="contact-actions" id="contact-actions"></div>
+          </section>
+
+          <div class="contact-map-wrap">
+            <div class="contact-map" id="contact-map"></div>
+            <p class="contact-map__link"><a id="open-maps" href="#" target="_blank" rel="noopener noreferrer">Open in Google Maps</a></p>
+          </div>
+        </div>
 
         <section class="panel" aria-labelledby="h-req">
-          <h2 id="h-req">Send a service request</h2>
+          <h2 id="h-req">Contact Form</h2>
           <form id="req-form" novalidate>
             <div class="row2">
-              <div class="field"><label for="r-name">Full name</label><input class="input" id="r-name" autocomplete="name" aria-describedby="re-name"><p class="err" id="re-name"></p></div>
-              <div class="field"><label for="r-phone">Mobile number</label><input class="input" id="r-phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="10 digits" aria-describedby="re-phone"><p class="err" id="re-phone"></p></div>
+              <div class="field">
+                <label for="f-name">Full Name</label>
+                <input class="input" id="f-name" type="text" autocomplete="name" required aria-describedby="fe-name">
+                <p class="err" id="fe-name"></p>
+              </div>
+              <div class="field">
+                <label for="f-phone">Mobile Number</label>
+                <input class="input" id="f-phone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="10 digits" maxlength="10" required aria-describedby="fe-phone">
+                <p class="err" id="fe-phone"></p>
+              </div>
             </div>
             <div class="row2">
-              <div class="field"><label for="r-type">What do you need help with?</label>
-                <select class="input" id="r-type" aria-describedby="re-type"></select><p class="err" id="re-type"></p></div>
-              <div class="field"><label for="r-ref">Order or invoice number <small>(optional)</small></label><input class="input" id="r-ref" autocomplete="off"></div>
+              <div class="field">
+                <label for="f-email">Email Address <small>(optional)</small></label>
+                <input class="input" id="f-email" type="email" autocomplete="email" aria-describedby="fe-email">
+                <p class="err" id="fe-email"></p>
+              </div>
+              <div class="field">
+                <label for="f-city">City &amp; State <small>(optional)</small></label>
+                <input class="input" id="f-city" type="text" autocomplete="address-level2" aria-describedby="fe-city">
+                <p class="err" id="fe-city"></p>
+              </div>
             </div>
-            <div class="field"><label for="r-msg">Tell us what happened</label>
-              <textarea class="input" id="r-msg" aria-describedby="re-msg"></textarea><p class="err" id="re-msg"></p></div>
-            <button class="btn btn--primary" type="submit">Prepare request</button>
-            <p class="note" style="margin-top:12px">This demo has no server. After you press the button you choose how to send the request.</p>
+            <div class="row2">
+              <div class="field">
+                <label for="f-pin">PIN Code <small>(optional)</small></label>
+                <input class="input" id="f-pin" type="text" inputmode="numeric" maxlength="6" autocomplete="postal-code" aria-describedby="fe-pin">
+                <p class="err" id="fe-pin"></p>
+              </div>
+              <div class="field">
+                <label for="f-budget">Budget <small>(optional)</small></label>
+                <div class="input-prefix">
+                  <span aria-hidden="true">₹</span>
+                  <input class="input" id="f-budget" type="text" inputmode="numeric" aria-describedby="fe-budget">
+                </div>
+                <p class="err" id="fe-budget"></p>
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-config">Required PC Configuration <small>(optional)</small></label>
+              <textarea class="input" id="f-config" rows="3" aria-describedby="fe-config"></textarea>
+              <p class="err" id="fe-config"></p>
+            </div>
+            <div class="field">
+              <label for="f-msg">Message <small>(optional)</small></label>
+              <textarea class="input" id="f-msg" rows="3" aria-describedby="fe-msg"></textarea>
+              <p class="err" id="fe-msg"></p>
+            </div>
+            <button class="btn btn--primary" type="submit">Submit Enquiry</button>
+            <p class="note" style="margin-top:12px">After you press Submit Enquiry, choose WhatsApp or email to send it to us.</p>
           </form>
 
           <div id="req-done" role="status" hidden>
-            <p><strong>Your request is ready.</strong> Choose how to send it to us.</p>
+            <p><strong>Your enquiry is ready.</strong> Choose WhatsApp or email to send it to us.</p>
             <div class="btn-row" style="margin:14px 0">
               <a class="btn btn--primary" id="send-wa" href="#" target="_blank" rel="noopener noreferrer">Send on WhatsApp</a>
-              <a class="btn btn--outline" id="send-mail" href="#">Send by email</a>
+              <a class="btn btn--outline" id="send-mail" href="#">Send by Email</a>
             </div>
-            <button class="linkbtn" type="button" id="req-edit">Edit the request</button>
+            <button class="linkbtn" type="button" id="req-edit">Edit enquiry</button>
           </div>
         </section>
       </div>
@@ -67,6 +116,7 @@
   <script src="/js/util.js"></script>
   <script src="/js/icons.js"></script>
   <script src="/js/data.js"></script>
+  <script src="/dist/data-api.js"></script>
   <script src="/js/store.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/contact.js"></script>

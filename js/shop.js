@@ -268,4 +268,10 @@
 
   drawFilters();
   draw(true);
+  if (PCS.onCatalogUpdate) {
+    PCS.onCatalogUpdate(function () {
+      drawFilters();
+      draw(false);
+    });
+  }
 })(window.PCS);

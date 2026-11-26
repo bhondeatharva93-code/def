@@ -4,13 +4,23 @@
   "private": true,
   "description": "YourBrand PC Store - Gaming, editing, trading and office PCs, custom PC builder, and store assistant.",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "node scripts/build.mjs && node server.js",
     "start": "node server.js",
-    "build": "node --check server.js",
-    "lint": "node --check server.js"
+    "build": "node scripts/build.mjs && node --check server.js",
+    "lint": "npx tsc --noEmit && npx eslint firestore.rules && node --check server.js",
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
+    "@firebase/eslint-plugin-security-rules": "^0.0.2",
     "@google/genai": "^3.6.1",
-    "express": "^4.21.2"
+    "@types/react": "^19.3.2",
+    "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.15.0",
+    "express": "^4.21.2",
+    "firebase": "^13.4.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2"
   }
 }

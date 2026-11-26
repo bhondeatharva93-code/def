@@ -38,6 +38,7 @@
   var store = PCS.store = {
     /* Call fn whenever cart, wishlist or recent items change */
     on: function (fn) { listeners.push(fn); },
+    reload: function () { load(); emit(); },
 
     cart: {
       items: function () {

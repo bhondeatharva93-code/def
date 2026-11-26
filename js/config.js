@@ -2,13 +2,21 @@
    Store settings
    Edit WHATSAPP_NUMBER once below to update every WhatsApp link across the site.
    ========================================================================== */
-const WHATSAPP_NUMBER = '919000000000';
+const WHATSAPP_NUMBER = '917014443922';
 
 window.PCS = window.PCS || {};
 PCS.WHATSAPP_NUMBER = WHATSAPP_NUMBER;
 
+PCS.contact = {
+  whatsappNumber: WHATSAPP_NUMBER,
+  phones: ['+91 7014443922', '+91 8852834882', '+91 7425961962'],
+  email: 'computergalaxysirohi@gmail.com',
+  mapsQuery: 'Iskon Plaza, Near Weblink Computer, Sirohi 307001, Rajasthan, India',
+  mapsEmbedUrl: ''
+};
+
 PCS.config = {
-  name: 'YourBrand',
+  name: 'Computer Galaxy',
   tagline: 'Gaming, editing, trading and office PCs, built and delivered.',
 
   phone: '+91 90000 00000',
@@ -32,10 +40,31 @@ PCS.config = {
   emi: { tenures: [3, 6, 9, 12], annualInterestPct: 0 },
 
   ticker: [
-    'EMI on every PC',
-    'Delivery across India',
-    'GST invoice on every order',
-    'Stress-tested before dispatch'
+    'Genuine & Quality Products',
+    'GST Invoice Available',
+    'All India Delivery Available',
+    'Product Warranty & Support'
+  ],
+
+  specialities: [
+    { icon: 'checkcircle', title: 'Genuine & Quality Products' },
+    { icon: 'cpu', title: 'Customized Intel & AMD PC Builds' },
+    { icon: 'tag', title: 'Competitive & Transparent Pricing' },
+    { icon: 'receipt', title: 'GST Invoice Available' },
+    { icon: 'wrench', title: 'Professional Assembly & Testing' },
+    { icon: 'shield', title: 'Product Warranty & Support' },
+    { icon: 'box', title: 'Safe & Secure Packaging' },
+    { icon: 'truck', title: 'All India Delivery Available' },
+    { icon: 'headset', title: 'After-Sales Customer Support' }
+  ],
+
+  coreValues: [
+    { icon: 'heart', title: 'Customer Satisfaction' },
+    { icon: 'checkcircle', title: 'Quality & Reliability' },
+    { icon: 'shield', title: 'Honesty & Transparency' },
+    { icon: 'headset', title: 'Professional Service' },
+    { icon: 'bolt', title: 'Continuous Innovation' },
+    { icon: 'star', title: 'Long-Term Customer Trust' }
   ],
 
   commitments: [
@@ -77,7 +106,7 @@ PCS.config = {
   assistant: {
     enabled: true,
     name: 'PC advisor',
-    greeting: 'Hi! Tell me what you will use your PC for and your budget, and I will suggest the best options from our store.',
+    greeting: 'Hi! Welcome to Computer Galaxy. Tell me what you will use your PC for and your budget, and I will suggest the best options from our store.',
     endpoint: '/api/assistant'
   }
 };

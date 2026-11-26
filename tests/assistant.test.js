@@ -6,8 +6,9 @@ const { loadStoreCatalog, sanitizeInput, askPcAdvisor } = require('../server/gem
 
 test('loadStoreCatalog reads store config, WHATSAPP_NUMBER, and catalog products', () => {
   const store = loadStoreCatalog();
-  assert.equal(store.config.name, 'YourBrand');
-  assert.ok(/^\d{10,15}$/.test(store.whatsappNumber));
+  assert.equal(store.config.name, 'Computer Galaxy');
+  assert.equal(store.whatsappNumber, '917014443922');
+  assert.equal(store.config.specialities.length, 9);
   assert.ok(Array.isArray(store.products) && store.products.length > 20);
   assert.ok(store.byId['pc-gaming-2']);
 });
@@ -51,4 +52,31 @@ test('askPcAdvisor returns 503 error cleanly when GEMINI_API_KEY is absent', asy
   } finally {
     if (prev !== undefined) process.env.GEMINI_API_KEY = prev;
   }
+});
+
+test('PCS.brain replies cleanly for quick chips and budget queries without errors', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const vm = require('node:vm');
+  const ctx = {
+    console,
+    Intl,
+    setTimeout,
+    clearTimeout,
+    localStorage: { getItem() { return null; }, setItem() {} },
+    addEventListener() {},
+    document: { addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; } }
+  };
+  ctx.window = ctx;
+  vm.createContext(ctx);
+  ['config.js', 'util.js', 'icons.js', 'data.js', 'compat.js', 'assistant-kb.js', 'assistant-brain.js'].forEach((file) => {
+    const code = fs.readFileSync(path.join(__dirname, '..', 'js', file), 'utf8');
+    vm.runInContext(code, ctx, { filename: file });
+  });
+
+  ['Gaming PC', 'Video editing', 'Trading setup', 'Office PC', 'Gaming PC under 70000'].forEach((query) => {
+    const res = ctx.PCS.brain.reply(query, ctx.PCS.brain.initialState(), { page: 'home', pageProductId: '' });
+    assert.ok(res && res.message && res.message.text.length > 0, `Expected reply text for "${query}"`);
+    assert.ok(Array.isArray(res.message.cards) && res.message.cards.length > 0, `Expected cards for "${query}"`);
+  });
 });

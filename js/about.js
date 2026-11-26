@@ -31,12 +31,23 @@
       </article>
     </section>
 
+    <section class="about-vm" aria-label="Our Vision and Our Mission">
+      <article class="panel">
+        <h2>Our Vision</h2>
+        <p>To establish Computer Galaxy as a trusted and recognized computer technology brand through quality products, innovation, customer satisfaction and long-term relationships.</p>
+      </article>
+      <article class="panel">
+        <h2>Our Mission</h2>
+        <p>To provide reliable, affordable and high-performance computer solutions with genuine products, transparent pricing and professional customer service across India.</p>
+      </article>
+    </section>
+
     <section class="two" aria-labelledby="h-about-promise">
       <div>
-        <span class="eyebrow">Why Choose ${esc(cfg.name)}</span>
-        <h2 id="h-about-promise">What goes into every build</h2>
-        <ul class="facts">
-          ${cfg.commitments.map(c => `<li>${icon(c.icon, 22)}<div><strong>${esc(c.title)}</strong><span>${esc(c.text)}</span></div></li>`).join('')}
+        <span class="eyebrow">Core Values</span>
+        <h2 id="h-about-promise">Our Core Values</h2>
+        <ul class="facts facts--values">
+          ${(cfg.coreValues || []).map(v => `<li>${icon(v.icon, 22)}<div><strong>${esc(v.title)}</strong></div></li>`).join('')}
         </ul>
       </div>
       <div class="report">
@@ -57,8 +68,8 @@
           <p class="lead">${cfg.address.map(esc).join(', ')} · ${esc(cfg.hours)}</p>
         </div>
         <div class="btn-row">
-          <a class="btn btn--primary" href="/build">Custom PC Build</a>
-          <a class="btn btn--outline" href="/shop">Browse Shop</a>
+          <a class="btn btn--primary" href="/build">Build Your Custom PC</a>
+          <a class="btn btn--outline" href="/shop">Shop Now</a>
           <a class="btn btn--outline" href="/contact">Contact Us</a>
         </div>
       </div>

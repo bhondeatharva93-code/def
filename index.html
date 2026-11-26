@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YourBrand | Gaming, editing, trading and office PCs</title>
-  <meta name="description" content="Pick what you will use a PC for, set a budget and see a ready-to-ship build with every part listed. Prebuilt PCs, custom builds and components with EMI.">
-  <meta property="og:title" content="YourBrand | Gaming, editing, trading and office PCs">
-  <meta property="og:description" content="Set a budget and see the right PC, with every part listed.">
+  <title>Computer Galaxy | Custom PCs, Gaming PCs &amp; Workstations</title>
+  <meta name="description" content="Computer Galaxy: custom-built computers, gaming PCs, professional workstations, laptops, components and accessories. Genuine products, trusted service.">
+  <meta property="og:title" content="Computer Galaxy | Custom PCs, Gaming PCs &amp; Workstations">
+  <meta property="og:description" content="Computer Galaxy: custom-built computers, gaming PCs, professional workstations, laptops, components and accessories. Genuine products, trusted service.">
   <meta property="og:type" content="website">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,11 +72,11 @@
         <div class="hero__grid">
           <div class="hero__copy">
             <span class="eyebrow">PC Finder</span>
-            <h2 class="hero__title">Set a budget. Get the right PC.</h2>
-            <p>Say what you will use it for, drag the budget, and see a ready-to-ship PC with every part listed.</p>
+            <h2 class="hero__title">Find the right PC for your requirements and budget</h2>
+            <p>We provide customized computer solutions for gaming, education, office work, trading, video editing, programming and professional applications according to your requirements and budget.</p>
             <div class="btn-row">
-              <a class="btn btn--primary" href="/shop?cat=prebuilt">Browse prebuilt PCs</a>
-              <a class="btn btn--outline-white" href="/build">Build your own</a>
+              <a class="btn btn--primary" href="/offers">Explore Latest Offers</a>
+              <a class="btn btn--outline-white" id="finder-wa" href="#" target="_blank" rel="noopener noreferrer">Get a Quotation</a>
             </div>
             <ul class="hero__proof" id="proof"></ul>
           </div>
@@ -125,7 +125,7 @@
         <div class="block__head">
           <div>
             <span class="eyebrow">Limited Offers</span>
-            <h2 id="h-deals">Biggest discounts</h2>
+            <h2 id="h-deals">Latest Offers</h2>
             <p>In-stock products with the largest price cuts.</p>
           </div>
           <div class="block__head-right">
@@ -134,7 +134,7 @@
               <button class="carousel-arrow" type="button" id="deals-prev" aria-label="Previous deals">&#8592;</button>
               <button class="carousel-arrow" type="button" id="deals-next" aria-label="Next deals">&#8594;</button>
             </div>
-            <a class="more" href="/shop?sort=discount">See all deals</a>
+            <a class="more" href="/offers">Explore Latest Offers</a>
           </div>
         </div>
         <div class="carousel-rail" id="deals" tabindex="0"></div>
@@ -146,11 +146,11 @@
       <div class="wrap banner">
         <div class="banner__copy">
           <span class="eyebrow">Custom PC Builder</span>
-          <h2 id="h-build">Choose every part yourself</h2>
+          <h2 id="h-build">Customized Intel &amp; AMD PC Builds</h2>
           <p>Pick a processor, board, memory and more. The builder checks that the parts fit together and estimates the power supply you need.</p>
           <div class="btn-row">
-            <a class="btn btn--primary" href="/build">Start a custom build</a>
-            <a class="btn btn--outline-white" id="build-wa" href="#" target="_blank" rel="noopener noreferrer">Ask us on WhatsApp</a>
+            <a class="btn btn--primary" href="/build">Build Your Custom PC</a>
+            <a class="btn btn--outline-white" id="build-wa" href="#" target="_blank" rel="noopener noreferrer">Get a Quotation</a>
           </div>
         </div>
         <div class="banner__visual">
@@ -164,15 +164,17 @@
       </div>
     </section>
 
-    <!-- 8. What you get with every PC (Light section) -->
+    <!-- 8. Our Specialities (Light section) -->
     <section class="block section--light reveal" aria-labelledby="h-facts">
-      <div class="wrap two">
-        <div>
-          <span class="eyebrow">Built With Care</span>
-          <h2 id="h-facts">What you get with every PC</h2>
-          <ul class="facts" id="facts"></ul>
+      <div class="wrap">
+        <div class="block__head">
+          <div>
+            <span class="eyebrow">Why Computer Galaxy</span>
+            <h2 id="h-facts">Our Specialities</h2>
+            <p>From affordable budget computers to high-performance gaming and professional workstations, we focus on quality, performance and customer satisfaction.</p>
+          </div>
         </div>
-        <div class="report" id="report"></div>
+        <ul class="about-cards" id="facts"></ul>
       </div>
     </section>
 
@@ -250,12 +252,11 @@
         <div>
           <span class="eyebrow">Talk To A Builder</span>
           <h2 id="h-help">Not sure which PC to pick?</h2>
-          <p>Tell us your budget and what you will use the PC for. We will suggest a build on WhatsApp.</p>
+          <p>Tell us your requirements and budget. We will suggest a build and send you a quotation on WhatsApp.</p>
         </div>
         <div class="btn-row">
-          <a class="btn btn--primary" id="cta-wa" href="#" target="_blank" rel="noopener noreferrer">Message on WhatsApp</a>
-          <a class="btn btn--outline-white" id="cta-call" href="#"></a>
-          <a class="btn btn--outline-white" href="/contact">Contact page</a>
+          <a class="btn btn--primary" id="cta-wa" href="#" target="_blank" rel="noopener noreferrer">Get a Quotation</a>
+          <a class="btn btn--outline-white" href="/track-order">Track Your Order</a>
         </div>
       </div>
     </section>
@@ -267,6 +268,7 @@
   <script src="/js/util.js"></script>
   <script src="/js/icons.js"></script>
   <script src="/js/data.js"></script>
+  <script src="/dist/data-api.js"></script>
   <script src="/js/store.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/rgb-hero.js"></script>

@@ -100,7 +100,7 @@
       '</div>';
   }
 
-  const storeName = esc((PCS.config && PCS.config.name) || 'YourBrand');
+  const storeName = esc((PCS.config && PCS.config.name) || 'Computer Galaxy');
   const root = document.createElement('div');
   root.className = 'ca';
   root.innerHTML =
@@ -187,8 +187,61 @@
       : { role: 'assistant', content: String((m.m && m.m.text) || '').slice(0, 600) }));
   }
 
+  let aiEndpointState = 'unknown'; // 'unknown' | 'available' | 'unavailable'
+
+  async function checkAiEndpointStatus() {
+    if (aiEndpointState !== 'unknown') return aiEndpointState === 'available';
+    const endpoint = cfg.endpoint || '/api/assistant';
+    if (endpoint !== '/api/assistant') return true;
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 3000);
+    try {
+      const res = await fetch('/api/assistant/status', { signal: ctl.signal });
+      const ct = (res.headers.get('content-type') || '').toLowerCase();
+      if (res.ok && ct.indexOf('application/json') !== -1) {
+        const d = await res.json().catch(() => null);
+        if (d && typeof d.assistantAi === 'boolean') {
+          aiEndpointState = d.assistantAi ? 'available' : 'unavailable';
+          return d.assistantAi;
+        }
+      }
+      return true;
+    } catch (_e) {
+      return true;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function askLocalBrain(text) {
+    if (PCS.catalogReady) {
+      await Promise.resolve(PCS.catalogReady).catch(() => {});
+    }
+    if (!brain || typeof brain.reply !== 'function') {
+      throw new Error('local brain unavailable');
+    }
+    const res = brain.reply(text, S.state, env());
+    S.state = res.state || S.state;
+    const m = res.message || {};
+    const combinedText = [m.text || '', m.after || ''].filter(Boolean).join('\n\n');
+    const cards = Array.isArray(m.cards) ? m.cards.filter(c => c && PCS.byId[c.id]).slice(0, 3) : [];
+    const actions = Array.isArray(m.actions) ? m.actions.slice(0, 3) : [];
+    const chips = Array.isArray(m.chips) && m.chips.length ? m.chips : QUICK_CHIPS;
+    return {
+      text: combinedText || 'Tell me what the PC is for and your budget and I will suggest options.',
+      cards: cards,
+      chips: chips,
+      actions: actions
+    };
+  }
+
   async function askGeminiEndpoint() {
-    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 14000);
+    if (PCS.catalogReady) {
+      await Promise.resolve(PCS.catalogReady).catch(() => {});
+    }
+    const canUseAi = await checkAiEndpointStatus();
+    if (!canUseAi) throw new Error('ai unavailable');
+
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 7000);
     try {
       const e = env();
       const endpoint = cfg.endpoint || '/api/assistant';
@@ -198,9 +251,13 @@
         signal: ctl.signal,
         body: JSON.stringify({ messages: history(), productId: e.pageProductId })
       });
+      if (res.status === 404 || res.status === 503) {
+        aiEndpointState = 'unavailable';
+      }
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d.error || ('status ' + res.status));
       if (!d || typeof d.reply !== 'string' || !d.reply.trim()) throw new Error('empty reply');
+      aiEndpointState = 'available';
       const rawIds = Array.isArray(d.productIds) ? d.productIds : (Array.isArray(d.products) ? d.products : []);
       const ids = rawIds.filter(id => PCS.byId[id]).slice(0, 3);
       return {
@@ -259,15 +316,19 @@
     try {
       bot = await askGeminiEndpoint();
     } catch (_err) {
-      bot = {
-        text: 'I could not reach the AI PC advisor right now. Message us on WhatsApp or visit our contact page and we will help you pick the right build.',
-        cards: [],
-        chips: QUICK_CHIPS.slice(0, 4),
-        actions: [
-          { label: 'Message on WhatsApp', href: PCS.wa('Hi, I need help picking a PC: ' + text), external: true },
-          { label: 'Contact page', href: '/contact' }
-        ]
-      };
+      try {
+        bot = await askLocalBrain(text);
+      } catch (_brainErr) {
+        bot = {
+          text: 'I could not reach the AI PC advisor right now. Message us on WhatsApp or visit our contact page and we will help you pick the right build.',
+          cards: [],
+          chips: QUICK_CHIPS.slice(0, 4),
+          actions: [
+            { label: 'Message on WhatsApp', href: PCS.wa('Hi, I need help picking a PC: ' + text), external: true },
+            { label: 'Contact page', href: '/contact' }
+          ]
+        };
+      }
     }
 
     dots.remove();

@@ -7,6 +7,7 @@
   const NAV = [
     { label: 'Home', href: '/', page: 'home' },
     { label: 'Shop', href: '/shop', page: 'shop' },
+    { label: 'Offers', href: '/offers', page: 'offers' },
     { label: 'Custom PC Build', href: '/build', page: 'build' },
     { label: 'Tech Videos', href: '/videos', page: 'videos' },
     { label: 'Track Order', href: '/track-order', page: 'track' },
@@ -102,6 +103,7 @@
                 <a href="tel:${esc(cfg.phoneTel)}">${esc(cfg.phone)}</a>
                 <a href="${esc(wa)}" target="_blank" rel="noopener noreferrer">WhatsApp us</a>
                 <a href="mailto:${esc(cfg.email)}">${esc(cfg.email)}</a>
+                <a href="/admin" rel="nofollow">Admin</a>
               </address>
             </div>
             <div class="ftr__news">
@@ -260,7 +262,8 @@
 
   function mount(page, title) {
     document.body.dataset.page = page || '';
-    document.title = title ? title + ' | ' + cfg.name : cfg.name + ' | ' + cfg.tagline;
+    if (title) document.title = title + ' | ' + cfg.name;
+    else if (page !== 'home') document.title = cfg.name + ' | ' + cfg.tagline;
     const head = $('#site-header'), foot = $('#site-footer');
     if (head) head.outerHTML = headerHtml(page);
     if (foot) foot.outerHTML = footerHtml();

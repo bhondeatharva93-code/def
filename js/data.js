@@ -49,11 +49,11 @@
   PCS.uses = [
     { id: 'gaming', label: 'Gaming', hue: '#8b3dff', text: '#ffffff', icon: 'gamepad',
       blurb: 'High frame rates in Valorant, GTA V and Cyberpunk.' },
-    { id: 'editing', label: 'Editing', hue: '#ff7a1a', text: '#1a0f00', icon: 'film',
+    { id: 'editing', label: 'Video Editing', hue: '#ff7a1a', text: '#1a0f00', icon: 'film',
       blurb: 'Smooth timelines in Premiere Pro, DaVinci Resolve and After Effects.' },
     { id: 'trading', label: 'Trading', hue: '#16a765', text: '#02180d', icon: 'chart',
       blurb: 'Many monitors, fast charts and no lag when the market moves.' },
-    { id: 'office', label: 'Office and study', hue: '#2760f0', text: '#ffffff', icon: 'briefcase',
+    { id: 'office', label: 'Office & Education', hue: '#2760f0', text: '#ffffff', icon: 'briefcase',
       blurb: 'Tally, billing, online classes, coding and family use.' }
   ];
 

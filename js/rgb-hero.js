@@ -123,12 +123,12 @@
         '<div class="hero-banner__scrim" aria-hidden="true"></div>' +
       '</div>' +
       '<div class="wrap hero-banner__inner">' +
-        '<span class="eyebrow">Ready-to-ship &amp; Custom PCs · Delivered Across India</span>' +
-        '<h1 class="hero-banner__title">Your Dream PC, Built &amp; Delivered.</h1>' +
-        '<p class="hero-banner__sub">Gaming, editing, trading &amp; office PCs — stress-tested before dispatch, with every part listed and flexible EMI options.</p>' +
+        '<span class="eyebrow">POWERFUL PERFORMANCE · GENUINE PRODUCTS · TRUSTED SERVICE</span>' +
+        '<h1 class="hero-banner__title">Build Your Dream PC with Computer Galaxy</h1>' +
+        '<p class="hero-banner__sub">Welcome to Computer Galaxy, your trusted destination for custom-built computers, gaming PCs, professional workstations, laptops, computer components and accessories.</p>' +
         '<div class="btn-row hero-banner__ctas">' +
-          '<a class="btn btn--primary" href="/shop?cat=prebuilt">Browse prebuilt PCs</a>' +
-          '<a class="btn btn--outline-white" href="/build">Build your own</a>' +
+          '<a class="btn btn--primary" href="/shop">Shop Now</a>' +
+          '<a class="btn btn--outline-white" href="/build">Build Your Custom PC</a>' +
         '</div>' +
         (featured.length
           ? '<div class="hero-spot-wrap">' +

@@ -9,16 +9,16 @@
 
   /* ---------- Hero proof points ---------- */
   $('#proof').innerHTML = [
-    'Every part is listed, so you know what you pay for',
-    'Change any part: message us or use the custom builder',
-    'Brand warranty on parts, with help on claims'
-  ].map(t => `<li>${icon('checkcircle', 18)}<span>${t}</span></li>`).join('');
+    'Genuine & Quality Products',
+    'Customized Intel & AMD PC Builds',
+    'Product Warranty & Support'
+  ].map(t => `<li>${icon('checkcircle', 18)}<span>${esc(t)}</span></li>`).join('');
 
   /* ---------- PC finder (use + budget -> best prebuilt PC that fits) ---------- */
-  const pcs = PCS.products.filter(p => p.cat === 'prebuilt' && p.stock);
-  const prices = pcs.map(p => p.price);
-  const MIN = Math.floor(Math.min.apply(null, prices) / 10000) * 10000;
-  const MAX = Math.ceil(Math.max.apply(null, prices) / 10000) * 10000;
+  let pcs = PCS.products.filter(p => p.cat === 'prebuilt' && p.stock);
+  let prices = pcs.map(p => p.price);
+  let MIN = prices.length ? Math.floor(Math.min.apply(null, prices) / 10000) * 10000 : 20000;
+  let MAX = prices.length ? Math.ceil(Math.max.apply(null, prices) / 10000) * 10000 : 150000;
   const state = { use: 'gaming', budget: PCS.util.clamp(70000, MIN, MAX) };
   const PART_LABELS = [['cpu', 'Processor'], ['gpu', 'Graphics'], ['ram', 'Memory'], ['ssd', 'Storage'], ['psu', 'Power supply'], ['case', 'Cabinet']];
 
@@ -33,12 +33,23 @@
       <output class="tuner__amount tabular" id="budget-out" for="budget"></output>
     </div>
     <input class="range" id="budget" type="range" min="${MIN}" max="${MAX}" step="1000" value="${state.budget}">
-    <div class="range-ends tabular"><span>${short(MIN)}</span><span>${short(MAX)}</span></div>
+    <div class="range-ends tabular" id="tuner-ends"><span>${short(MIN)}</span><span>${short(MAX)}</span></div>
     <div class="tuner__result" id="tuner-result" aria-live="polite"></div>`;
 
   const slider = $('#budget', tuner), out = $('#budget-out', tuner), result = $('#tuner-result', tuner);
 
   function drawTuner() {
+    pcs = PCS.products.filter(p => p.cat === 'prebuilt' && p.stock);
+    prices = pcs.map(p => p.price);
+    MIN = prices.length ? Math.floor(Math.min.apply(null, prices) / 10000) * 10000 : 20000;
+    MAX = prices.length ? Math.ceil(Math.max.apply(null, prices) / 10000) * 10000 : 150000;
+    if (MAX <= MIN) MAX = MIN + 10000;
+    state.budget = PCS.util.clamp(state.budget, MIN, MAX);
+    slider.min = String(MIN);
+    slider.max = String(MAX);
+    const ends = $('#tuner-ends', tuner);
+    if (ends) ends.innerHTML = `<span>${short(MIN)}</span><span>${short(MAX)}</span>`;
+
     const use = PCS.useById[state.use];
     $$('.use', tuner).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.use === state.use)));
     out.textContent = money(state.budget);
@@ -50,11 +61,15 @@
     const best = fit[fit.length - 1];
     if (!best) {
       const first = list[0];
+      if (!first) {
+        result.innerHTML = `<div class="tuner__note"><p>No ${use.label.toLowerCase()} PCs are currently in stock.</p></div>`;
+        return;
+      }
       result.innerHTML = `<div class="tuner__note"><p>No ${use.label.toLowerCase()} PC fits ${money(state.budget)}. They start at ${money(first.price)}.</p>
         <p style="margin-top:12px"><button class="btn btn--primary btn--sm" type="button" data-budget="${first.price}">Show the ${money(first.price)} PC</button></p></div>`;
       return;
     }
-    const rows = PART_LABELS.filter(([k]) => best.parts[k]).map(([k, label]) => `<div><dt>${label}</dt><dd>${esc(best.parts[k])}</dd></div>`).join('');
+    const rows = PART_LABELS.filter(([k]) => best.parts && best.parts[k]).map(([k, label]) => `<div><dt>${label}</dt><dd>${esc(best.parts[k])}</dd></div>`).join('');
     result.innerHTML = `
       <div class="tuner__art">${PCS.art(best)}</div>
       <div class="tuner__detail">
@@ -78,18 +93,21 @@
   drawTuner();
 
   /* ---------- Categories: large image tiles with label below ---------- */
-  const countIn = id => PCS.products.filter(p => p.cat === id).length;
-  $('#cats').innerHTML = `
-    <div class="cat-grid">
-      ${PCS.categories.map(c => `
-        <a class="cat-tile" href="/shop?cat=${encodeURIComponent(c.id)}">
-          ${PCS.categoryArt(c)}
-          <div class="cat-tile__label">
-            <strong>${esc(c.label)}</strong>
-            <small>${countIn(c.id)} products</small>
-          </div>
-        </a>`).join('')}
-    </div>`;
+  function drawCategories() {
+    const countIn = id => PCS.products.filter(p => p.cat === id).length;
+    $('#cats').innerHTML = `
+      <div class="cat-grid">
+        ${PCS.categories.map(c => `
+          <a class="cat-tile" href="/shop?cat=${encodeURIComponent(c.id)}">
+            ${PCS.categoryArt(c)}
+            <div class="cat-tile__label">
+              <strong>${esc(c.label)}</strong>
+              <small>${countIn(c.id)} products</small>
+            </div>
+          </a>`).join('')}
+      </div>`;
+  }
+  drawCategories();
 
   /* ---------- Carousel helper (prev/next arrows + live counter) ---------- */
   function wireCarousel(railEl, prevBtn, nextBtn, counterEl) {
@@ -165,35 +183,40 @@
 
   /* ---------- Biggest discounts (scroll-snap carousel) ---------- */
   const dealsRail = $('#deals');
-  dealsRail.innerHTML = PCS.products
-    .filter(p => p.stock && PCS.discount(p) > 0)
-    .sort((a, b) => PCS.discount(b) - PCS.discount(a))
-    .slice(0, 10)
-    .map(ui.card)
-    .join('');
-  wireCarousel(dealsRail, $('#deals-prev'), $('#deals-next'), $('#deals-counter'));
+  const updateDealsCarousel = wireCarousel(dealsRail, $('#deals-prev'), $('#deals-next'), $('#deals-counter'));
+  function drawDeals() {
+    dealsRail.innerHTML = PCS.products
+      .filter(p => p.stock && PCS.discount(p) > 0)
+      .sort((a, b) => PCS.discount(b) - PCS.discount(a))
+      .slice(0, 10)
+      .map(ui.card)
+      .join('');
+    if (updateDealsCarousel) updateDealsCarousel();
+  }
+  drawDeals();
 
   /* ---------- Recently viewed ---------- */
-  const recent = store.recent.list();
-  if (recent.length) {
-    $('#recent-sec').hidden = false;
-    $('#recent').innerHTML = recent.slice(0, 8).map(ui.card).join('');
+  function drawRecent() {
+    const recent = store.recent.list();
+    if (recent.length) {
+      $('#recent-sec').hidden = false;
+      $('#recent').innerHTML = recent.slice(0, 8).map(ui.card).join('');
+    }
   }
+  drawRecent();
 
   /* ---------- Build banner ---------- */
   [['cpu', 'Processor & board', 'Same socket'], ['ram', 'Memory', 'DDR4 or DDR5 match'], ['case', 'Cabinet', 'Board size fits'],
    ['fan', 'CPU cooler', 'Mounts on socket'], ['psu', 'Power supply', 'Watts to spare']].forEach((r, i) => {
     $('#slot-' + (i + 1)).innerHTML = `${icon(r[0], 20)}<strong>${r[1]}</strong><span>${r[2]}</span>`;
   });
-  $('#build-wa').href = PCS.wa('Hi, I want to build a custom PC.');
+  const quoteHref = PCS.wa('Hello Computer Galaxy, I would like a quotation. My requirement: \nMy budget: ');
+  const finderWa = $('#finder-wa');
+  if (finderWa) finderWa.href = quoteHref;
+  $('#build-wa').href = quoteHref;
 
-  /* ---------- Commitments and test report ---------- */
-  $('#facts').innerHTML = cfg.commitments.map(c => `<li>${icon(c.icon, 22)}<div><strong>${esc(c.title)}</strong><span>${esc(c.text)}</span></div></li>`).join('');
-  $('#report').innerHTML = `
-    <h3>Stress-test report</h3>
-    <p class="report__meta">A sample sheet. Every PC gets its own before it ships.</p>
-    <dl class="sheet">${cfg.testSheet.map(r => `<div><dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd></div>`).join('')}</dl>
-    <div class="report__sign"><span>Tested by</span><span>Date</span></div>`;
+  /* ---------- Our Specialities ---------- */
+  $('#facts').innerHTML = (cfg.specialities || []).map(c => `<li class="panel speciality-card">${icon(c.icon, 22)}<strong>${esc(c.title)}</strong></li>`).join('');
 
   /* ---------- EMI calculator ---------- */
   const tenures = cfg.emi.tenures, rate = cfg.emi.annualInterestPct;
@@ -244,20 +267,32 @@
     Nimbus: '#0EA5E9',
     Orbit: '#10B981'
   };
-  $('#brands').innerHTML = PCS.brands.map(b => {
-    const col = BRAND_COLORS[b] || '#D4A12A';
-    return `<a class="brand-logo" href="/shop?brand=${encodeURIComponent(b)}" style="--brand-color:${col}">
-      <svg class="brand-logo__mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor" fill-opacity="0.16" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>
-      <span>${esc(b)}</span>
-    </a>`;
-  }).join('');
+  function drawBrands() {
+    $('#brands').innerHTML = PCS.brands.map(b => {
+      const col = BRAND_COLORS[b] || '#D4A12A';
+      return `<a class="brand-logo" href="/shop?brand=${encodeURIComponent(b)}" style="--brand-color:${col}">
+        <svg class="brand-logo__mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor" fill-opacity="0.16" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>
+        <span>${esc(b)}</span>
+      </a>`;
+    }).join('');
+  }
+  drawBrands();
 
   $('#faq').innerHTML = cfg.faq.map(f => `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('');
   $('#faq-wa').href = PCS.wa('Hi, I have a question.');
-  $('#cta-wa').href = PCS.wa('Hi, I need help choosing a PC. My budget is about ');
-  const call = $('#cta-call');
-  call.href = 'tel:' + cfg.phoneTel;
-  call.textContent = 'Call ' + cfg.phone;
+  $('#cta-wa').href = quoteHref;
+
+  if (PCS.onCatalogUpdate) {
+    PCS.onCatalogUpdate(function () {
+      drawTuner();
+      drawCategories();
+      drawBest();
+      drawDeals();
+      drawRecent();
+      drawBrands();
+      ui.refresh();
+    });
+  }
 
   ui.refresh();
 })(window.PCS);

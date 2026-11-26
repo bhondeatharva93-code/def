@@ -1,10 +1,26 @@
 [build]
+  command = "npm run build"
   publish = "."
   functions = "netlify/functions"
+
+[[headers]]
+  for = "/admin*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
 
 [[redirects]]
   from = "/api/assistant"
   to = "/.netlify/functions/assistant"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin.html"
   status = 200
 
 [[redirects]]
@@ -13,8 +29,28 @@
   status = 200
 
 [[redirects]]
+  from = "/offers"
+  to = "/offers.html"
+  status = 200
+
+[[redirects]]
   from = "/build"
   to = "/build.html"
+  status = 200
+
+[[redirects]]
+  from = "/videos"
+  to = "/videos.html"
+  status = 200
+
+[[redirects]]
+  from = "/track-order"
+  to = "/track-order.html"
+  status = 200
+
+[[redirects]]
+  from = "/about"
+  to = "/about.html"
   status = 200
 
 [[redirects]]
